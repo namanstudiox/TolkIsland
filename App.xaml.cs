@@ -34,10 +34,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Local crash log first: anything below this line that throws still lands
-        // in %LOCALAPPDATA%\TolkIsland\crash.log instead of dying silently.
         DiagnosticsService.Attach();
 
+        // --settings must not take the single-instance mutex.
         var wantsSettings = e.Args.Any(arg =>
             string.Equals(arg, "--settings", StringComparison.OrdinalIgnoreCase));
 
@@ -54,8 +53,6 @@ public partial class App : Application
             return;
         }
 
-        // Island windows can be rebuilt when the monitor mode changes; that must
-        // not end the process while the first window is briefly closed.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         BuildIslands();
@@ -78,11 +75,6 @@ public partial class App : Application
         }
     }
 
-    /// <summary>
-    /// One island per user session. A second launch (shortcut, Run key, installer
-    /// finish page) signals the running copy instead of stacking overlays, tray
-    /// icons and a second global hotkey registration.
-    /// </summary>
     private bool TryAcquireSingleInstance(bool wantsSettings)
     {
         try
@@ -98,21 +90,17 @@ public partial class App : Application
         }
         catch
         {
-            // Policy can deny the mutex; running twice beats not running at all.
             _instanceMutex = null;
         }
 
         if (wantsSettings)
         {
-            // A settings-only run must not hold the single-instance mutex: a
-            // normal launch while it is open would signal a process with no island.
             try
             {
                 _instanceMutex?.ReleaseMutex();
             }
             catch
             {
-                // Not owning the mutex is harmless here.
             }
 
             _instanceMutex?.Dispose();
@@ -134,7 +122,6 @@ public partial class App : Application
         }
         catch
         {
-            // The other instance is already shutting down.
         }
     }
 
@@ -195,7 +182,6 @@ public partial class App : Application
         }
         catch
         {
-            // Named events are best-effort; the first instance still works.
         }
     }
 
@@ -215,7 +201,6 @@ public partial class App : Application
         }
         catch
         {
-            // Fall through to the stock icon.
         }
 
         return System.Drawing.SystemIcons.Application;
@@ -252,10 +237,6 @@ public partial class App : Application
         }
     }
 
-    /// <summary>
-    /// Creates one shell for the chosen monitor, or one per screen in all-monitor
-    /// mode. Exactly one shell is primary and owns the shared Windows services.
-    /// </summary>
     private void BuildIslands()
     {
         var settings = SettingsService.Current;
@@ -285,7 +266,6 @@ public partial class App : Application
             _islands.Add(_island);
         }
 
-        // Never leave the app without a shell if a monitor name went stale.
         _island ??= _islands.FirstOrDefault();
         MainWindow = _island;
 
@@ -296,8 +276,6 @@ public partial class App : Application
             island.PauseRequested = SetPausedEverywhere;
             island.Show();
 
-            // A rebuild must not silently resume a paused island: the new shell
-            // would otherwise restart capture and notifications on its own.
             if (_paused)
             {
                 island.SetPaused(true);
@@ -305,21 +283,11 @@ public partial class App : Application
         }
     }
 
-    /// <summary>
-    /// Identity of the current monitor set, including which screen is primary:
-    /// the all-monitor mode needs one shell per entry, and the primary flag
-    /// decides which shell owns the shared services.
-    /// </summary>
     private static string MonitorSignature()
         => string.Join("|", Screen.AllScreens
             .OrderBy(screen => screen.DeviceName, StringComparer.OrdinalIgnoreCase)
             .Select(screen => screen.DeviceName + (screen.Primary ? "*" : "")));
 
-    /// <summary>
-    /// Docking or undocking a display changes how many islands should exist.
-    /// Single-shell modes re-target themselves on the same event, so only the
-    /// all-monitor mode needs to rebuild, and only when the set actually moved.
-    /// </summary>
     private void OnDisplayTopologyChanged(object? sender, EventArgs e)
     {
         if (Dispatcher.HasShutdownStarted)
@@ -355,8 +323,6 @@ public partial class App : Application
             return;
         }
 
-        // Defer: rebuilding inside the Changed dispatch would close windows that
-        // are halfway through their own settings handler.
         Dispatcher.BeginInvoke(new Action(() =>
         {
             var current = SettingsService.Current;
@@ -428,7 +394,6 @@ public partial class App : Application
         };
     }
 
-    /// <summary>Pause is process-wide: every screen keeps the same state.</summary>
     private void SetPausedEverywhere(bool paused)
     {
         _paused = paused;
@@ -449,7 +414,6 @@ public partial class App : Application
         SettingsService.Changed -= OnSettingsChanged;
         SystemEvents.DisplaySettingsChanged -= OnDisplayTopologyChanged;
 
-        // Stop the single-instance listener before its handles go away.
         _signals?.Cancel();
         _showEvent?.Dispose();
         _settingsEvent?.Dispose();
@@ -464,15 +428,12 @@ public partial class App : Application
             }
             catch
             {
-                // Not the owner (mutex creation failed earlier); nothing to release.
             }
 
             _instanceMutex.Dispose();
             _instanceMutex = null;
         }
 
-        // Only tear down the shared Windows services if a shell actually started
-        // them (the --settings entry point never does).
         if (_islands.Count > 0)
         {
             IslandServices.Shared.Shutdown();

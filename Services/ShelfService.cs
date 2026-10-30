@@ -15,9 +15,6 @@ public sealed record ShelfItem(string Path, string Name, bool Exists)
             name = path;
         }
 
-        // A UNC path makes Windows authenticate against a remote host; shelf
-        // entries stay on local drives so a stored path can never trigger an
-        // outbound SMB login (or block on an offline share).
         var local = ShelfPaths.IsLocal(path);
         return new ShelfItem(path, name, local && (File.Exists(path) || Directory.Exists(path)));
     }
@@ -37,10 +34,6 @@ internal static class ShelfPaths
     }
 }
 
-/// <summary>
-/// A small, persistent holding area for files. The shelf only stores paths; it
-/// never copies or uploads file contents.
-/// </summary>
 public sealed class ShelfService
 {
     private readonly object _sync = new();

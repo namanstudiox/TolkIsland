@@ -64,16 +64,9 @@ public enum IslandState
     LiveActivity
 }
 
-/// <summary>
-/// A Windows Dynamic Island. The host window is a fixed size and always topmost;
-/// only the black shell inside it morphs, so transitions stay smooth. Mouse input
-/// is controlled per-pixel through WM_NCHITTEST: outside the shell the overlay is
-/// fully click-through.
-/// </summary>
 public partial class MainWindow : Window
 {
-    // Shell sizes (DIPs) include the 20 px ears on each side; the content
-    // itself is inset back to the original body width. The window never changes size.
+    // The host window stays fixed; only the shell inside it resizes.
     private const double EarRadius = 20;
     private const double BottomRadius = 30;
     private const double IdleWidth = 300;
@@ -115,8 +108,6 @@ public partial class MainWindow : Window
     private const double LiveActivityWidth = 460;
     private const double LiveActivityHeight = 88;
 
-    // Expansion is a spring that settles; collapse is a quick retreat. Both are
-    // short enough to feel like one gesture with the click that caused them.
     private static readonly TimeSpan NormalExpandDuration = TimeSpan.FromMilliseconds(340);
     private static readonly TimeSpan NormalCollapseDuration = TimeSpan.FromMilliseconds(260);
     private static readonly TimeSpan NormalContentFade = TimeSpan.FromMilliseconds(180);
@@ -157,9 +148,6 @@ public partial class MainWindow : Window
     private readonly string? _boundDeviceName;
     private readonly bool _isPrimary;
 
-    // One 1 s heartbeat drives the clock, battery, idle retract and fullscreen
-    // check. Four separate timers woke the dispatcher at four different phases
-    // for work that all costs less than a frame.
     private readonly DispatcherTimer _heartbeat = new();
     private readonly DispatcherTimer _timeline = new();
     private readonly DispatcherTimer _hoverLeave = new();
@@ -292,7 +280,6 @@ public partial class MainWindow : Window
         _timeline.Interval = TimeSpan.FromMilliseconds(500);
         _timeline.Tick += (_, _) =>
         {
-            // No session: no WinRT call, no layout pass, every half second.
             if (_currentMedia?.HasMedia != true)
             {
                 return;
@@ -329,8 +316,6 @@ public partial class MainWindow : Window
         _focusCompleteCountdown.Interval = FocusCompleteVisibleDuration;
         _focusCompleteCountdown.Tick += (_, _) => FinishOverlay(IslandState.FocusComplete);
 
-        // 30 fps read of the WASAPI loopback spectrum. The service does its own
-        // attack/release smoothing, so the tick can set ScaleY directly.
         _waveform.Interval = TimeSpan.FromMilliseconds(33);
         _waveform.Tick += (_, _) => PulseWaveform();
 
@@ -393,28 +378,20 @@ public partial class MainWindow : Window
         RenderCalendarPanel();
         BuildQuickLaunch();
 
-        // A window created after playback started (display hot-plug, all-monitor
-        // mode) seeds from the shared snapshot instead of waiting for an event.
         if (_media.Current is { HasMedia: true } currentMedia)
         {
             _currentMedia = currentMedia;
             if (_settings.MediaEnabled && !_paused)
             {
-                // Resolve instead of assuming media: a focus timer may already be
-                // running, and MediaFirst decides which compact bar comes first.
                 Transition(ResolveResting());
             }
         }
     }
 
-    // ---------------------------------------------------------------- placement
-
     protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
     {
         base.OnDpiChanged(oldDpi, newDpi);
 
-        // WM_NCHITTEST works in physical pixels; refresh the scale and recenter
-        // so the clickable silhouette still lines up after a scaling change.
         _dpiScale = newDpi.DpiScaleX > 0 ? newDpi.DpiScaleX : 1;
         Dispatcher.BeginInvoke(new Action(() => PositionWindow(force: true)));
     }
@@ -469,7 +446,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Locking or disconnecting the session must never leave the camera on.
         if (_state == IslandState.Mirror)
         {
             Transition(ResolveResting());
@@ -481,11 +457,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// A Windows theme or contrast switch must repaint immediately; the island
-    /// covers the top of the screen and a restart is not something the user
-    /// should need to discover.
-    /// </summary>
     private void ReapplySystemAppearance()
     {
         if (Dispatcher.HasShutdownStarted)
@@ -550,16 +521,11 @@ public partial class MainWindow : Window
 
         x += horizontalOffset * dpi;
 
-        // SetWindowPos works in physical pixels. Positioning the WPF window via
-        // Left/Top can drift when monitors have different DPI scales; this keeps
-        // the native window and the WM_NCHITTEST math on the same coordinates.
         if (_windowHandle != IntPtr.Zero)
         {
             var flags = NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE;
             if (Visibility == Visibility.Visible)
             {
-                // A forced reposition can fire while the island is hidden for a
-                // fullscreen app or a pause; never let it bring the HWND back.
                 flags |= NativeMethods.SWP_SHOWWINDOW;
             }
 
@@ -625,7 +591,6 @@ public partial class MainWindow : Window
                 }
                 catch
                 {
-                    // Fall through to the primary screen.
                 }
             }
         }
@@ -650,7 +615,6 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // shcore.dll is missing on very old builds; WPF's scale is the fallback.
         }
 
         return 1.0;
@@ -769,8 +733,6 @@ public partial class MainWindow : Window
         _preview = preview;
         _previewActive = true;
 
-        // The island may be idle-hidden while the user tweaks settings; reveal it
-        // so the live preview is actually visible.
         if (_state is IslandState.Idle or IslandState.IdleHidden)
         {
             Transition(IslandState.IdleExpanded);
@@ -1096,10 +1058,6 @@ public partial class MainWindow : Window
         return (modifiers | NativeMethods.MOD_NOREPEAT, key);
     }
 
-    // --------------------------------------------------------------- hit-testing
-
-    // Only the black shell is interactive; the rest of the host window is
-    // transparent to the mouse.
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == NativeMethods.WM_HOTKEY && wParam.ToInt32() == HotKeyId)
@@ -1113,6 +1071,8 @@ public partial class MainWindow : Window
         {
             return IntPtr.Zero;
         }
+
+        // Hit-test coordinates are physical pixels; convert through the DPI scale.
 
         if (!NativeMethods.GetWindowRect(hwnd, out var windowRect))
         {
@@ -1136,8 +1096,6 @@ public partial class MainWindow : Window
             relativeX >= 0 && relativeX <= CurrentShellWidth &&
             relativeY >= 0 && relativeY <= CurrentShellHeight;
 
-        // The ears leave transparent notches at the top corners; those must stay
-        // click-through, so test against the actual black silhouette.
         if (inside && ShellShape.Data is { } shape)
         {
             inside = shape.FillContains(new Point(relativeX, relativeY));
@@ -1151,15 +1109,8 @@ public partial class MainWindow : Window
 
     private double CurrentShellHeight => (double)Shell.GetValue(HeightProperty);
 
-    // ------------------------------------------------------------- notch shape
-
     private void Shell_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateShellShape();
 
-    /// <summary>
-    /// Rebuilds the single black silhouette: concave quarter-circle ears at the
-    /// top left/right (the fillets that melt into the screen edge) plus the
-    /// rounded bottom of the body.
-    /// </summary>
     private void UpdateShellShape()
     {
         var width = Shell.ActualWidth > 0 ? Shell.ActualWidth : Shell.Width;
@@ -1233,11 +1184,9 @@ public partial class MainWindow : Window
             IsFilled = true
         };
 
-        // Top-left ear: concave quarter-circle from the screen edge into the body.
         figure.Segments.Add(new ArcSegment(
             new Point(r, r), new Size(r, r), 0, false, SweepDirection.Clockwise, true));
 
-        // Left side down to the bottom-left corner.
         if (b > 0.001)
         {
             figure.Segments.Add(new LineSegment(new Point(r, height - b), true));
@@ -1249,7 +1198,6 @@ public partial class MainWindow : Window
             figure.Segments.Add(new LineSegment(new Point(r, height), true));
         }
 
-        // Bottom edge, bottom-right corner, right side.
         if (b > 0.001)
         {
             figure.Segments.Add(new LineSegment(new Point(width - r - b, height), true));
@@ -1263,7 +1211,6 @@ public partial class MainWindow : Window
 
         figure.Segments.Add(new LineSegment(new Point(width - r, r), true));
 
-        // Top-right ear, mirroring the left one.
         figure.Segments.Add(new ArcSegment(
             new Point(width, 0), new Size(r, r), 0, false, SweepDirection.Clockwise, true));
 
@@ -1271,8 +1218,6 @@ public partial class MainWindow : Window
         geometry.Freeze();
         return geometry;
     }
-
-    // ------------------------------------------------------------- state machine
 
     private (double Width, double Height) SizeFor(IslandState state)
     {
@@ -1352,11 +1297,6 @@ public partial class MainWindow : Window
         SyncMirror();
     }
 
-    /// <summary>
-    /// Morphs the shell from whatever shape it is in right now into the next
-    /// state's shape — one continuous motion of the same island, no collapse
-    /// step, no window resizing.
-    /// </summary>
     private void Transition(IslandState next)
     {
         if (next == _state)
@@ -1368,23 +1308,16 @@ public partial class MainWindow : Window
         var previous = _state;
         _state = next;
 
-        // Leaving the prompt panel ends the request; a late answer must not
-        // arrive for a panel the user already closed. Overlays keep it alive
-        // because they restore the panel they interrupted.
         if (previous == IslandState.Prompt && next != IslandState.Prompt && !IsOverlay(next))
         {
             CancelPrompt();
         }
 
-        // Navigating away from a toast dismisses the whole peek session. Without
-        // this, the countdown would keep dequeuing cards nobody can see.
         if (previous == IslandState.Notification && next != IslandState.Notification)
         {
             ClearNotificationSession();
         }
 
-        // A pin only belongs to an expanded panel. Any return to a resting state
-        // closes the pin and removes the outside-click hook.
         if (next is IslandState.Idle or IslandState.IdleHidden
             or IslandState.CompactMedia or IslandState.CompactFocus)
         {
@@ -1398,8 +1331,6 @@ public partial class MainWindow : Window
 
         _hoverLeave.Stop();
 
-        // A real crossfade: the outgoing panel stays visible underneath while it
-        // fades out, so the shell never flashes an empty frame between states.
         var previousPanel = PanelFor(previous);
         var previousVisible = previousPanel.Visibility == Visibility.Visible;
         var previousOpacity = previousVisible ? previousPanel.Opacity : 0;
@@ -1423,10 +1354,8 @@ public partial class MainWindow : Window
             }
         }
 
-        // No HeldEnd clock may survive the fade: a clock that stays in the timing
-        // tree keeps WPF's render thread ticking while the island is idle. Base
-        // value 1 + FillBehavior.Stop + explicit cleanup on Completed.
         nextPanel.Opacity = 1;
+        // FillBehavior.Stop plus cleanup keeps animation clocks out of the idle tree.
         var fade = new DoubleAnimation(0, 1, ContentFade)
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
@@ -1457,11 +1386,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Fades a panel that just lost the foreground. It is re-shown because
-    /// <see cref="ShowPanel"/> collapsed it already; both panels share the same
-    /// grid slot, so the two opacity ramps read as one crossfade.
-    /// </summary>
     private void FadeOutPanel(FrameworkElement panel, double from)
     {
         panel.BeginAnimation(OpacityProperty, null);
@@ -1478,9 +1402,6 @@ public partial class MainWindow : Window
         {
             panel.IsHitTestVisible = true;
 
-            // A rapid second transition may have brought this panel back; its
-            // own fade-in owns the opacity now, so only hide it when it is still
-            // not the active panel.
             if (PanelFor(_state) == panel)
             {
                 return;
@@ -1494,10 +1415,6 @@ public partial class MainWindow : Window
         panel.BeginAnimation(OpacityProperty, fade);
     }
 
-    /// <summary>
-    /// Reduce motion only softens movement; the hover grace stays at its normal
-    /// length because it is a behavioural pause, not an animation.
-    /// </summary>
     private bool ReducedMotion => _preview?.ReducedMotion ?? _settings.ReducedMotion;
 
     private TimeSpan ContentFade
@@ -1516,13 +1433,9 @@ public partial class MainWindow : Window
 
     private void MorphShell(double width, double height, bool growing, IEasingFunction easing)
     {
-        // Read the effective (animated) size before the base value moves, so the
-        // next morph starts from what is on screen rather than from the target.
         var fromWidth = Shell.ActualWidth > 0 ? Shell.ActualWidth : width;
         var fromHeight = Shell.ActualHeight > 0 ? Shell.ActualHeight : height;
 
-        // Base values are the destination, so the animation can be released the
-        // moment it finishes instead of leaving a HeldEnd clock running.
         Shell.Width = width;
         Shell.Height = height;
 
@@ -1545,10 +1458,6 @@ public partial class MainWindow : Window
         Shell.BeginAnimation(HeightProperty, heightAnimation, HandoffBehavior.SnapshotAndReplace);
     }
 
-    /// <summary>
-    /// The home panel arrives in three small steps so the eye reads time first,
-    /// then controls. Only a transform moves; the panel-level fade owns opacity.
-    /// </summary>
     private void PlayIdleHomeEntrance()
     {
         if (ReducedMotion)
@@ -1579,8 +1488,6 @@ public partial class MainWindow : Window
             FillBehavior = FillBehavior.Stop
         };
 
-        // The base value holds the start offset until the animation begins, then
-        // parks at zero the frame it lands so no clock survives the entrance.
         animation.Completed += (_, _) =>
         {
             transform.BeginAnimation(TranslateTransform.YProperty, null);
@@ -1589,12 +1496,6 @@ public partial class MainWindow : Window
         transform.BeginAnimation(TranslateTransform.YProperty, animation);
     }
 
-    // ---------------------------------------------------------- spider mascot
-
-    /// <summary>
-    /// The hanging mascot belongs to the Spider skin and to the ambient states
-    /// only: transient HUDs, panels and focus keep a clean silhouette.
-    /// </summary>
     private static bool IsSpiderBuddyState(IslandState state)
         => state is IslandState.Idle or IslandState.IdleExpanded
             or IslandState.CompactMedia or IslandState.ExpandedMedia;
@@ -1609,10 +1510,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Visibility only; the offscreen render harness uses this to place the
-    /// mascot without running the island state machine.
-    /// </summary>
     internal void ShowSpiderBuddy(bool visible)
     {
         var skin = _preview?.Skin ?? _settings.Skin;
@@ -1636,8 +1533,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // One damped swing on appearance, then the mascot rests. A forever
-        // clock in the timing tree would keep the idle island rendering.
         var swing = new DoubleAnimationUsingKeyFrames
         {
             Duration = TimeSpan.FromMilliseconds(1500),
@@ -1667,11 +1562,8 @@ public partial class MainWindow : Window
         SpiderSway.BeginAnimation(RotateTransform.AngleProperty, swing);
     }
 
-    // ------------------------------------------------------------ data rendering
-
     private void RenderState()
     {
-        // The 500 ms progress tick only exists while the player is open.
         var wantsTimeline = _state == IslandState.ExpandedMedia;
         if (wantsTimeline != _timeline.IsEnabled)
         {
@@ -1790,11 +1682,6 @@ public partial class MainWindow : Window
         SetArtwork(CompactArt, info?.Thumbnail);
     }
 
-    /// <summary>
-    /// WASAPI capture follows the visible waveform, not just playback: an open
-    /// panel, an overlay, the full player or a hidden island all stop the
-    /// loopback session until the compact bars are actually on screen again.
-    /// </summary>
     private void SyncCapture()
     {
         var want = !_paused
@@ -1819,14 +1706,9 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// The shared WASAPI capture is owned by the primary window only. Every
-    /// monitor reads the same levels, so a second capture would be wasted work.
-    /// </summary>
     private void EnsureCapture(bool want)
     {
-        // Every shell claims the shared capture lease while its own waveform is
-        // visible, so one monitor collapsing cannot freeze another's bars.
+        // The visualizer is shared by every shell; the last owner stops capture.
         var shouldCapture = want && !_paused && _settings.MediaEnabled;
         if (shouldCapture == _captureWanted)
         {
@@ -1872,8 +1754,6 @@ public partial class MainWindow : Window
 
     private void StopWaveform()
     {
-        // SyncCapture owns the WASAPI session, so overlay states only need to
-        // rest the bars — and only once, since RenderState runs per event.
         _waveform.Stop();
         if (_waveformResting)
         {
@@ -1892,12 +1772,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Decodes each track once and shares the frozen bitmap between the compact
-    /// and expanded artwork. Playback events fire far more often than the cover
-    /// changes, and 1024 px decodes were both slow and memory-hungry for a
-    /// player whose largest cover slot is 104 DIP.
-    /// </summary>
     private void SetArtwork(System.Windows.Controls.Image image, byte[]? thumbnail)
     {
         BitmapSource? source = null;
@@ -1934,8 +1808,6 @@ public partial class MainWindow : Window
 
     private void MirrorPreview_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        // Border.ClipToBounds only clips to the outer rectangle; the camera
-        // image needs its own rounded clip to match the card corner radius.
         if (sender is System.Windows.Controls.Image { ActualWidth: > 0, ActualHeight: > 0 } image)
         {
             image.Clip = new RectangleGeometry(
@@ -1945,8 +1817,6 @@ public partial class MainWindow : Window
 
     private void Artwork_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        // Border.ClipToBounds only clips to the outer rectangle; the artwork needs
-        // its own rounded clip to match the tile's corner radius.
         if (sender is System.Windows.Controls.Image { ActualWidth: > 0, ActualHeight: > 0 } image)
         {
             var radius = image == ExpandedArt ? 21.0 : 10.0;
@@ -1984,8 +1854,6 @@ public partial class MainWindow : Window
         PlayPauseGlyph.Text = info?.IsPlaying == true ? "\uE769" : "\uE768";
         PositionText.Text = SystemStatusService.FormatDuration(_position);
 
-        // Live streams and some sessions report no duration; "0:00" would be
-        // misleading, so show an unknown duration instead.
         DurationText.Text = _duration > TimeSpan.Zero
             ? SystemStatusService.FormatDuration(_duration)
             : "--:--";
@@ -2013,8 +1881,6 @@ public partial class MainWindow : Window
         ProgressKnobTransform.X = Math.Clamp(
             trackWidth * ratio - ProgressKnob.Width / 2, 0, travel);
     }
-
-    // ------------------------------------------------------------------- timer
 
     private void UpdateTimerVisual()
     {
@@ -2059,7 +1925,6 @@ public partial class MainWindow : Window
             : "Session complete";
     }
 
-    /// <summary>Draws the green progress arc of the timer ring as a real geometry.</summary>
     private void DrawTimerArc(double progress)
         => DrawRingArc(TimerProgressArc, progress, 104, 6);
 
@@ -2102,8 +1967,6 @@ public partial class MainWindow : Window
         return new Point(cx + radius * Math.Cos(radians), cy + radius * Math.Sin(radians));
     }
 
-    // --------------------------------------------------------- notification card
-
     private void RenderNotificationPanel()
     {
         var info = _pendingNotification;
@@ -2128,8 +1991,6 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Some toasts only have one text line. Show the app as the header
-            // and the message once, instead of printing the same text twice.
             NotifHeaderText.Text = string.IsNullOrWhiteSpace(app) ? "Notification" : app;
             NotifBodyText.Text = title;
         }
@@ -2138,8 +1999,6 @@ public partial class MainWindow : Window
         AvatarText.Text = seed.Length > 0 ? char.ToUpperInvariant(seed[0]).ToString() : "!";
         AvatarBorder.Background = SystemStatusService.AccentFor(seed);
 
-        // Only message-style toasts get a Reply entry: Windows exposes no reply
-        // API to listeners, so the button opens the toast's own reply box.
         NotifReplyButton.Visibility = _settings.NotificationReplyEnabled
             && info.CanReply
             && IsConversationApp(app)
@@ -2176,9 +2035,6 @@ public partial class MainWindow : Window
         OpenActionCenter();
         FinishOverlay(IslandState.Notification);
 
-        // Be explicit instead of pretending the island sent a message: the
-        // inline reply belongs to the toast and only the notification centre
-        // can drive it for an unpackaged listener.
         ShowLiveActivity(
             "Reply in the notification centre",
             string.IsNullOrWhiteSpace(info?.AppName) ? "Type in the toast's reply box" : $"Reply to {info!.AppName} there",
@@ -2196,7 +2052,6 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // The shell may have no notification centre on stripped-down images.
         }
     }
 
@@ -2205,14 +2060,11 @@ public partial class MainWindow : Window
         var info = _pendingNotification;
         if (info is not null && info.Id != 0)
         {
-            // Removes the real toast from the Action Center, not just our card.
             _notifications.Dismiss(info.Id);
         }
 
         FinishOverlay(IslandState.Notification);
     }
-
-    // ---------------------------------------------------------------- file shelf
 
     private void OnShelfChanged()
     {
@@ -2347,7 +2199,6 @@ public partial class MainWindow : Window
                 }
                 catch
                 {
-                    // Explorer can refuse a drag mid-operation; the shelf stays intact.
                 }
             };
             row.MouseLeftButtonUp += (_, _) => _shelfDragPath = null;
@@ -2364,7 +2215,6 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // The file may have moved since it was added.
         }
     }
 
@@ -2432,8 +2282,6 @@ public partial class MainWindow : Window
 
         e.Handled = true;
     }
-
-    // ------------------------------------------------------------- quick notes
 
     private void OnNotesChanged()
     {
@@ -2555,7 +2403,6 @@ public partial class MainWindow : Window
         var result = _notes.Add(text);
         if (!result.Ok)
         {
-            // Keep the typed text so a retry costs nothing.
             ShowNotesError(result.Message);
             NoteInput.Focus();
             return;
@@ -2579,15 +2426,11 @@ public partial class MainWindow : Window
             : Visibility.Visible;
     }
 
-    // --------------------------------------------------------------- charging HUD
-
     private void RenderChargingPanel()
     {
         ChargingPercentText.Text = $"{(int)Math.Round(_chargingPercent)}%";
         ChargingBatteryFill.Width = Math.Max(2, ChargingBatteryMaxWidth * Math.Clamp(_chargingPercent / 100, 0, 1));
     }
-
-    // ----------------------------------------------------------------- volume HUD
 
     private void RenderVolumePanel()
     {
@@ -2647,7 +2490,6 @@ public partial class MainWindow : Window
                 return;
             }
 
-            // Never cut off an attention card with the volume HUD.
             if (_state is IslandState.Notification or IslandState.FocusComplete or IslandState.Brightness)
             {
                 return;
@@ -2658,8 +2500,6 @@ public partial class MainWindow : Window
             _volumeCountdown.Start();
         }));
     }
-
-    // ---------------------------------------------------------------- overlays
 
     private static bool IsOverlay(IslandState state)
         => state is IslandState.Notification or IslandState.Charging or IslandState.Volume
@@ -2672,7 +2512,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // A peek must not cost the user the panel they were working in.
         if (!IsOverlay(_state) && _pinned)
         {
             _overlayReturnState = _state;
@@ -2683,10 +2522,6 @@ public partial class MainWindow : Window
         Transition(overlay);
     }
 
-    /// <summary>
-    /// Drops whichever transient peek is on screen and lands on the activity
-    /// underneath. Callers decide whether the pin survives the dismissal.
-    /// </summary>
     private void DismissActiveOverlay()
     {
         _chargingCountdown.Stop();
@@ -2707,8 +2542,6 @@ public partial class MainWindow : Window
         {
             _notificationCountdown.Stop();
 
-            // Another state owns the surface: keep the queue untouched for the
-            // next real notification instead of advancing it invisibly.
             if (_state != IslandState.Notification)
             {
                 ClearNotificationSession();
@@ -2784,8 +2617,6 @@ public partial class MainWindow : Window
         return IslandState.Idle;
     }
 
-    // ---------------------------------------------------------------- services
-
     private void OnMediaChanged(MediaInfo? info)
     {
         if (Dispatcher.HasShutdownStarted)
@@ -2845,15 +2676,10 @@ public partial class MainWindow : Window
 
         if (_state is IslandState.CompactMedia or IslandState.ExpandedMedia)
         {
-            // Refresh in place. A new track must never pop the full player open:
-            // media stays compact until the user hovers it or picks it from the tray.
             RenderState();
             return;
         }
 
-        // The clock panel is open because the pointer is on it; let it close
-        // naturally. HoverLeave resolves to ResolveResting(), which will reveal
-        // the compact player instead of dropping back to Idle.
         if (_state == IslandState.IdleExpanded)
         {
             return;
@@ -2861,8 +2687,6 @@ public partial class MainWindow : Window
 
         if (_state is IslandState.Idle or IslandState.IdleHidden)
         {
-            // MediaFirst decides between the focus bar and the player bar when
-            // both activities are live.
             Transition(ResolveResting());
         }
     }
@@ -2872,7 +2696,6 @@ public partial class MainWindow : Window
         _splash.Stop();
         _splashActive = false;
 
-        // A pin outranks the splash; collapsing under it would undo the pin.
         if (_pinned || Shell.IsMouseOver || _state != IslandState.ExpandedMedia)
         {
             return;
@@ -2936,7 +2759,6 @@ public partial class MainWindow : Window
     {
         if (_state == IslandState.Notification)
         {
-            // Three peeks waiting is plenty; the oldest is dropped beyond that.
             _notificationQueue.TryEnqueue((info, duration));
             return;
         }
@@ -3088,8 +2910,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Snapshot the state at event time; the dispatcher callback may run after
-        // another start/pause and must not mistake that for a completion.
         var status = _focusTimer.Status;
         var target = _focusTimer.Target;
         var elapsed = _focusTimer.Elapsed;
@@ -3158,8 +2978,6 @@ public partial class MainWindow : Window
 
         _focusCompleteCountdown.Stop();
 
-        // Route through the overlay path so a pinned panel is restored after the
-        // card rather than being replaced by the resting state.
         PushOverlay(IslandState.FocusComplete);
         _focusCompleteCountdown.Stop();
         _focusCompleteCountdown.Start();
@@ -3177,13 +2995,11 @@ public partial class MainWindow : Window
 
     private void OnHeartbeat()
     {
-        // The clock text only exists in the resting pill and the home panel.
         if (_state is IslandState.Idle or IslandState.IdleExpanded)
         {
             UpdateClock();
         }
 
-        // Charging must be noticed even while the island is hidden or on a panel.
         if (++_heartbeatTicks % 3 == 0)
         {
             UpdateBattery();
@@ -3273,8 +3089,6 @@ public partial class MainWindow : Window
         _lastOnAc = onAc;
     }
 
-    // ---------------------------------------------------- fullscreen auto-hide
-
     private void CheckFullscreenApp()
     {
         if (!Dispatcher.CheckAccess())
@@ -3303,7 +3117,6 @@ public partial class MainWindow : Window
             PositionWindow();
         }
 
-        // The desktop, taskbar and our own window are never "fullscreen apps".
         _classNameBuffer.Clear();
         if (NativeMethods.GetClassName(hwnd, _classNameBuffer, _classNameBuffer.Capacity) > 0)
         {
@@ -3338,12 +3151,6 @@ public partial class MainWindow : Window
                 rect.Right >= bounds.Right &&
                 rect.Bottom >= bounds.Bottom;
 
-            // Maximized apps keep their title bar style; true borderless
-            // fullscreen (games, F11 video) drops it. Borderless *maximized*
-            // apps (Chrome, Electron) also drop the caption, so a maximize
-            // style must not be mistaken for fullscreen. The shell's own
-            // fullscreen state catches true fullscreen/presentation windows
-            // that happen to be maximized.
             var style = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_STYLE);
             var hasCaption = (style & NativeMethods.WS_CAPTION) != 0;
             var isMaximized = (style & NativeMethods.WS_MAXIMIZE) != 0;
@@ -3355,8 +3162,6 @@ public partial class MainWindow : Window
 
         if (isFullscreen)
         {
-            // Hysteresis: only hide once the condition held for two polls,
-            // so alt-tab flashes never make the island flicker away.
             if (++_fullscreenTicks >= 2)
             {
                 HideIsland();
@@ -3376,7 +3181,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // A hidden camera panel must not leave a stale frame for the next show.
         if (_state == IslandState.Mirror)
         {
             Transition(ResolveResting());
@@ -3403,9 +3207,6 @@ public partial class MainWindow : Window
         SyncCapture();
         SyncMirror();
 
-        // A fullscreen app can hide the island while it is expanded (no MouseLeave
-        // reaches us). Re-arm the collapse timer so it does not stay expanded
-        // forever once the island comes back.
         if (!_pinned && !_splashActive && (_state is IslandState.IdleExpanded or IslandState.ExpandedMedia
             or IslandState.FocusTimer or IslandState.FocusPicker))
         {
@@ -3413,8 +3214,6 @@ public partial class MainWindow : Window
             _hoverLeave.Start();
         }
     }
-
-    // ---------------------------------------------------------------- waveform
 
     private void BuildWaveform()
     {
@@ -3455,8 +3254,6 @@ public partial class MainWindow : Window
             scale.ScaleY = WaveformFloor + (1 - WaveformFloor) * _waveformLevels[i];
         }
     }
-
-    // --------------------------------------------------------------- interaction
 
     private void Shell_MouseWheel(object sender, MouseWheelEventArgs e)
     {
@@ -3634,9 +3431,6 @@ public partial class MainWindow : Window
 
         if (enabled)
         {
-            // Taking the foreground for keyboard control also takes it from
-            // whatever the user was typing in; remember it so Escape can hand
-            // focus back instead of leaving them on a desktop with no caret.
             if (_previousForeground == IntPtr.Zero)
             {
                 _previousForeground = NativeMethods.GetForegroundWindow();
@@ -3724,9 +3518,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // If unhook fails the hook is still live; keep its handle (and the
-        // rooted delegate) so a later pin or shutdown can retry instead of
-        // orphaning a global hook. The callback does nothing while unpinned.
         if (!NativeMethods.UnhookWindowsHookEx(_mouseHook))
         {
             return;
@@ -3734,8 +3525,6 @@ public partial class MainWindow : Window
 
         _mouseHook = IntPtr.Zero;
 
-        // Deliberately keep _mouseHookProc rooted: Windows may still be invoking
-        // an in-flight callback for a moment after UnhookWindowsHookEx returns.
     }
 
     private IntPtr MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam)
@@ -3763,7 +3552,6 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // A malformed hook callback must never break the system hook chain.
         }
 
         return NativeMethods.CallNextHookEx(_mouseHook, nCode, wParam, lParam);
@@ -3819,8 +3607,6 @@ public partial class MainWindow : Window
 
         if (_state == IslandState.ExpandedMedia)
         {
-            // If a focus session is still running, closing the player must reveal
-            // the compact timer again instead of leaving it invisible behind media.
             Transition(_focusTimer.Status != FocusTimerRunState.Stopped
                 ? IslandState.CompactFocus
                 : IslandState.CompactMedia);
@@ -3837,8 +3623,6 @@ public partial class MainWindow : Window
         }
         else if (_state == IslandState.IdleExpanded)
         {
-            // Media may have started while the clock panel was open; reveal the
-            // compact player now instead of dropping straight back to Idle.
             Transition(ResolveResting());
         }
         else if (_state is IslandState.Shelf or IslandState.Notes
@@ -3850,8 +3634,6 @@ public partial class MainWindow : Window
 
     private async void PlayPauseButton_Click(object sender, RoutedEventArgs e)
     {
-        // Flip immediately; the session event corrects it if the player refuses.
-        // Waiting for the SMTC round trip made the island feel like it missed taps.
         PlayPauseGlyph.Text = _currentMedia?.IsPlaying == true ? "\uE768" : "\uE769";
         await _media.TogglePlayPauseAsync();
         await _media.RefreshAsync();
@@ -3865,14 +3647,11 @@ public partial class MainWindow : Window
 
     private async void ShuffleButton_Click(object sender, RoutedEventArgs e)
     {
-        // Paint the new mode before the SMTC round trip; the refresh after the
-        // call restores the truth if the source app rejects the change.
         var shuffle = !_media.IsShuffleEnabled;
         ShuffleButton.Opacity = shuffle ? 1 : 0.55;
         ShuffleButton.Foreground = (Brush)FindResource(shuffle ? "BlueBrush" : "PrimaryBrush");
         await _media.ToggleShuffleAsync();
 
-        // ToggleShuffleAsync swallows a rejecting player without refreshing.
         if (_state == IslandState.ExpandedMedia)
         {
             UpdateMediaModeButtons();
@@ -3945,8 +3724,6 @@ public partial class MainWindow : Window
 
     private void ProgressHit_LostMouseCapture(object sender, MouseEventArgs e)
     {
-        // A drag interrupted by alt-tab or another capture must end the scrub;
-        // otherwise the timeline keeps following the pointer with no button held.
         if (!_seeking)
         {
             return;
@@ -4008,8 +3785,6 @@ public partial class MainWindow : Window
     {
         _focusTimer.Start(duration);
 
-        // StateChanged is dispatched asynchronously; collapse immediately so the
-        // picker does not linger while the first callback is queued.
         if (_state == IslandState.FocusPicker)
         {
             Transition(IslandState.CompactFocus);
@@ -4018,8 +3793,6 @@ public partial class MainWindow : Window
 
     private void TimerPause_Click(object sender, RoutedEventArgs e)
     {
-        // The service dispatches its state change asynchronously; flip the glyph
-        // now so the button answers the click on the same frame.
         TimerPauseGlyph.Text =
             _focusTimer.Status == FocusTimerRunState.Running ? "\uE768" : "\uE769";
         _focusTimer.Toggle();
@@ -4027,8 +3800,6 @@ public partial class MainWindow : Window
 
     private void TimerReset_Click(object sender, RoutedEventArgs e)
         => _focusTimer.Reset();
-
-    // --------------------------------------------------------------- calendar
 
     private void OnCalendarChanged()
     {
@@ -4202,8 +3973,6 @@ public partial class MainWindow : Window
 
     private void CalendarEntry_Click(object sender, RoutedEventArgs e) => ShowCalendar();
 
-    // --------------------------------------------------------- panel scroll fade
-
     private void ListScroller_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (sender is not ScrollViewer scroller || scroller.Tag is not Border fade)
@@ -4215,8 +3984,6 @@ public partial class MainWindow : Window
         var atEnd = scroller.VerticalOffset >= scroller.ScrollableHeight - 0.5;
         fade.Visibility = hasOverflow && !atEnd ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    // ----------------------------------------------------------------- prompt
 
     private void PromptEntry_Click(object sender, RoutedEventArgs e) => ShowPrompt(focusKeyboard: true);
 
@@ -4253,6 +4020,7 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task RunPromptAsync()
     {
+        // A generation guard drops late answers for an older request.
         if (PromptInput is null || !_promptRequest.TryStart(out var generation))
         {
             return;
@@ -4275,8 +4043,6 @@ public partial class MainWindow : Window
         {
             var result = await PromptService.RunAsync(prompt, token);
 
-            // A cancelled or replaced request may still return; never let it
-            // overwrite the answer that belongs to the current generation.
             if (Dispatcher.HasShutdownStarted || _promptRequest.Generation != generation)
             {
                 return;
@@ -4308,7 +4074,6 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            // CancelPrompt already updated the panel.
         }
         catch (Exception exception)
         {
@@ -4368,8 +4133,6 @@ public partial class MainWindow : Window
         TextWrapping = TextWrapping.Wrap
     };
 
-    // --------------------------------------------------------- quick actions
-
     private void BuildQuickLaunch()
     {
         if (QuickLaunchPanel is null)
@@ -4377,8 +4140,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Three apps share the hero line with the focus pill; a fourth would
-        // crowd the clock at the default 500 DIP width.
         var paths = _settings.QuickLaunch.Take(3).ToArray();
         var signature = string.Join('\u001F', paths);
         if (signature == _quickLaunchSignature)
@@ -4437,8 +4198,6 @@ public partial class MainWindow : Window
             DiagnosticsService.Write("QuickLaunch", exception);
         }
     }
-
-    // ----------------------------------------------------------------- mirror
 
     private void ApplyMirrorDock()
     {
@@ -4501,10 +4260,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// The camera is only live while the mirror is the visible, pinned panel.
-    /// Hiding, pausing or leaving the panel releases it at once.
-    /// </summary>
     private void SyncMirror()
     {
         var want = _settings.MirrorEnabled
@@ -4680,7 +4435,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Coalesce frames: one pending paint is enough; the newest buffer wins.
         if (System.Threading.Interlocked.Exchange(ref _mirrorFramePending, 1) == 1)
         {
             return;
@@ -4747,8 +4501,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // The shell has already sprung open; the shutter lifts and the frame
-        // settles from a 4.5% push-in, so the camera start reads as a reveal.
         var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(440))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
@@ -4790,12 +4542,6 @@ public partial class MainWindow : Window
         MirrorPreviewScale.BeginAnimation(ScaleTransform.ScaleYProperty, settleY);
     }
 
-    // ---------------------------------------------------------- live activity
-
-    /// <summary>
-    /// A short, self-closing activity card (download, call, API event). It never
-    /// replaces a notification peek and it clears itself after its duration.
-    /// </summary>
     private void ShowLiveActivity(
         string title,
         string body,
@@ -4903,13 +4649,6 @@ public partial class MainWindow : Window
         return bytes >= 1024 ? $"{bytes / 1024.0:0} KB" : $"{bytes} B";
     }
 
-    // ------------------------------------------------------------- navigation
-
-    /// <summary>
-    /// Shift + wheel cycles activities. With a panel pinned it walks the pinned
-    /// panels; otherwise it walks the real resting activities that currently
-    /// exist (idle, media, focus), so the gesture never lands on an empty state.
-    /// </summary>
     private void CycleActivity(int direction)
     {
         if (!_settings.SwipeNavigationEnabled || _paused)
@@ -4965,14 +4704,8 @@ public partial class MainWindow : Window
         _lastPresence = DateTime.UtcNow;
     }
 
-    // --------------------------------------------------------------- public API
-
     public bool IsPaused => _paused;
 
-    /// <summary>
-    /// Routes a pause request to the app so every shell follows; the second
-    /// launch path resumes process-wide rather than only this window.
-    /// </summary>
     public Action<bool>? PauseRequested { get; set; }
 
     public void SetPaused(bool paused)
@@ -5011,11 +4744,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Second-launch / tray entry point: reveal the island and pin it on whatever
-    /// activity it is currently showing. Unlike <see cref="ToggleIsland"/> this
-    /// always shows, so re-running the exe never hides an overlay the user wanted.
-    /// </summary>
     public void ShowFromTray()
     {
         if (!Dispatcher.CheckAccess())
@@ -5048,10 +4776,6 @@ public partial class MainWindow : Window
         PinCurrent(focusKeyboard: true);
     }
 
-    /// <summary>
-    /// Tray and global-hotkey entry point. The first press opens and pins the
-    /// current activity; the next press closes the pin and recedes.
-    /// </summary>
     public void ToggleIsland()
     {
         if (!Dispatcher.CheckAccess())
@@ -5072,8 +4796,6 @@ public partial class MainWindow : Window
             ShowIsland();
         }
 
-        // A transient peek must not swallow the press: drop it, then treat the
-        // hotkey like any other toggle on the activity underneath.
         if (IsOverlay(_state))
         {
             DismissActiveOverlay();
@@ -5104,9 +4826,6 @@ public partial class MainWindow : Window
             _splash.Stop();
             Transition(IslandState.ExpandedMedia);
 
-            // Without this, a player opened from the tray would stay open forever
-            // when the pointer is not over the island (no MouseLeave can fire).
-            // A pinned panel is already held open, so it needs no timer.
             if (!_pinned)
             {
                 _splashActive = true;
@@ -5201,8 +4920,6 @@ public partial class MainWindow : Window
         _waveform.Stop();
         _liveActivityCountdown.Stop();
 
-        // A closed shell must not leave its claim on the shared WASAPI loopback
-        // session; the last shell to close releases the capture.
         if (_captureWanted)
         {
             _captureWanted = false;
@@ -5256,8 +4973,5 @@ public partial class MainWindow : Window
         _localApi.MediaCommandRequested -= OnApiMedia;
         _localApi.FocusRequested -= OnApiFocus;
 
-        // Shared services outlive an individual shell: in all-monitor mode every
-        // screen has a window, and closing one must not stop media, toasts or the
-        // local API for the others. App.OnExit shuts them down once.
     }
 }

@@ -17,10 +17,6 @@ public sealed class NoteItem
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
 }
 
-/// <summary>
-/// A tiny local notes/to-do store. Notes never leave this file and are capped
-/// so a runaway script cannot fill the disk.
-/// </summary>
 public sealed class NotesService
 {
     private const int MaxNotes = 40;
@@ -37,7 +33,6 @@ public sealed class NotesService
 
     public event Action? Changed;
 
-    /// <summary>Message from the most recent failed write, or empty.</summary>
     public string LastError { get; private set; } = string.Empty;
 
     public IReadOnlyList<NoteItem> Items
@@ -67,8 +62,6 @@ public sealed class NotesService
         SaveResult result;
         lock (_sync)
         {
-            // A failed write must leave memory exactly as it was, including the
-            // note that was just pushed past the cap.
             var snapshot = _notes.Select(Clone).ToList();
 
             _notes.Insert(0, new NoteItem { Text = text });
@@ -80,6 +73,7 @@ public sealed class NotesService
             result = SaveLocked();
             if (!result.Ok)
             {
+                // Keep memory in sync with the file when the write fails.
                 _notes.Clear();
                 _notes.AddRange(snapshot);
             }
@@ -181,11 +175,6 @@ public sealed class NotesService
         }
     }
 
-    /// <summary>
-    /// A corrupt file must never be silently replaced by the next save. Set it
-    /// aside so the original data is still recoverable; if that is not possible,
-    /// block writes instead of overwriting it.
-    /// </summary>
     private void QuarantineUnreadableFile(Exception exception)
     {
         var message = exception is JsonException

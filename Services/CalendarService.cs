@@ -43,10 +43,6 @@ public enum CalendarAccess
     Denied
 }
 
-/// <summary>
-/// Next calendar items from the Windows appointment store. Join URLs are
-/// taken from the location/details text when they look like a meeting link.
-/// </summary>
 public sealed class CalendarService : IDisposable
 {
     private static readonly Regex UrlPattern = new(
@@ -109,8 +105,6 @@ public sealed class CalendarService : IDisposable
             var found = await store.FindAppointmentsAsync(start, TimeSpan.FromHours(18));
             var list = new List<CalendarEvent>();
 
-            // Filter first, then cap: taking the first item before filtering could
-            // pick an all-day or already-over entry over a real meeting.
             foreach (var item in found.OrderBy(a => a.StartTime))
             {
                 if (item.AllDay)
@@ -124,7 +118,6 @@ public sealed class CalendarService : IDisposable
                     continue;
                 }
 
-                // The island only ever shows the next event.
                 if (list.Count == 1)
                 {
                     break;
@@ -144,12 +137,10 @@ public sealed class CalendarService : IDisposable
         }
         catch (UnauthorizedAccessException)
         {
-            // Denied access must never render as an empty day.
             MarkDenied();
         }
         catch
         {
-            // Transient store failures keep the last good events on screen.
         }
         finally
         {
@@ -181,7 +172,6 @@ public sealed class CalendarService : IDisposable
     {
         foreach (Match match in UrlPattern.Matches(details))
         {
-            // Trust the host, not a substring: evil.example/?next=zoom.us is not Zoom.
             var candidate = match.Value.TrimEnd('.', ',', ')', ']', ';', '!', '"', '\'');
             if (SafeUrl.IsTrustedMeeting(candidate, out var uri))
             {

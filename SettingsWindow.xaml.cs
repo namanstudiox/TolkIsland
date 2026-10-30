@@ -203,7 +203,7 @@ public partial class SettingsWindow : Window
 
         _dirty = true;
         DirtyDot.Visibility = Visibility.Visible;
-        SetStatus("Live preview — Apply to keep.");
+        SetStatus("Live preview. Apply to keep.");
     }
 
     private void FitToWorkArea()
@@ -217,6 +217,7 @@ public partial class SettingsWindow : Window
 
     private void CacheTemplateParts()
     {
+        // Template-scoped names are not generated fields; resolve them here.
         _railColumn = SettingsTabs.Template?.FindName("RailColumn", SettingsTabs) as ColumnDefinition;
         _railFooter = SettingsTabs.Template?.FindName("PrivacyBadge", SettingsTabs) as FrameworkElement;
         _railLogo = SettingsTabs.Template?.FindName("RailLogo", SettingsTabs) as FrameworkElement;
@@ -269,8 +270,6 @@ public partial class SettingsWindow : Window
 
         _compact = width < 900;
 
-        // 1366×768 at 200% leaves roughly 660×340 DIPs. Below ~560 the logo and
-        // rail footer give way so the six tabs stay reachable without scrolling.
         _short = height < 560;
 
         _railColumn.Width = new GridLength(_compact ? 92 : 246);
@@ -338,10 +337,6 @@ public partial class SettingsWindow : Window
         }
     }
 
-    /// <summary>
-    /// Offscreen layout hook for the render harness: the responsive rules run on
-    /// Loaded, which never fires for a window that is not shown.
-    /// </summary>
     internal void PrepareOffscreenLayout(double width, double height)
     {
         SettingsTabs.ApplyTemplate();
@@ -482,14 +477,8 @@ public partial class SettingsWindow : Window
         RefreshPrivacyBadge();
     }
 
-    /// <summary>
-    /// The rail's privacy badge must describe the selected features, not a
-    /// blanket promise: Groq and update checks leave this PC.
-    /// </summary>
     private void RefreshPrivacyBadge()
     {
-        // The badge lives in the tab-control template, so it is resolved rather
-        // than generated as a field.
         var template = SettingsTabs?.Template;
         if (template?.FindName("PrivacyBadge", SettingsTabs) is not FrameworkElement badge
             || template.FindName("PrivacyBadgeGlyph", SettingsTabs) is not TextBlock glyph
@@ -923,11 +912,6 @@ public partial class SettingsWindow : Window
         }));
     }
 
-    /// <summary>
-    /// Windows high contrast replaces the glass palette with system colours for
-    /// the whole window, not just the island preview. Normal values are captured
-    /// before the first swap so leaving high contrast restores the skin exactly.
-    /// </summary>
     private void ApplyChromeHighContrast()
     {
         var highContrast = SystemParameters.HighContrast;
@@ -1048,7 +1032,6 @@ public partial class SettingsWindow : Window
             }
             catch
             {
-                // A malformed tag falls back to the default island accent.
             }
         }
 
@@ -1176,7 +1159,7 @@ public partial class SettingsWindow : Window
                 return;
             }
 
-            LicenseStatusText.Text = "Free plan — the island, media and notifications are included.";
+            LicenseStatusText.Text = "Free plan. The island, media and notifications are included.";
             LicenseKeyBox.Text = settings.LicenseKey;
             LicenseKeyBox.IsReadOnly = false;
             LicenseKeyHint.Text = "Format TOLK-XXXX-XXXX-XXXX. Choose Apply to activate.";
@@ -1489,9 +1472,6 @@ public partial class SettingsWindow : Window
 
         if (!save.Ok)
         {
-            // The save is transactional: nothing was written and the island is
-            // still on the previous values. Drop the live preview so what is on
-            // screen matches what is actually stored.
             SettingsService.EndPreview();
             SetStatus(save.Message);
             await ShowDialogAsync(
@@ -1526,8 +1506,6 @@ public partial class SettingsWindow : Window
             var wantsStartup = StartWithWindowsCheck.IsChecked == true;
             if (!StartupService.SetEnabled(wantsStartup))
             {
-                // Reflect what Windows actually accepted instead of leaving a
-                // checked box that will be wrong on the next open.
                 _loading = true;
                 try
                 {
@@ -1643,8 +1621,6 @@ public partial class SettingsWindow : Window
 
         if (e.Key == Key.Escape)
         {
-            // Escape closes the dropdown first; it must not also close the
-            // whole Settings window out from under the user.
             if (FindAncestor<System.Windows.Controls.ComboBox>(Keyboard.FocusedElement as DependencyObject)
                 is { IsDropDownOpen: true } combo)
             {
@@ -1724,7 +1700,6 @@ public partial class SettingsWindow : Window
 
         if (primaryIsDanger && cancelText is not null)
         {
-            // A destructive action never gets the Enter key by default.
             DialogCancelButton.IsDefault = true;
             DialogCancelButton.Focus();
         }

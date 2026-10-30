@@ -5,11 +5,6 @@ using Timer = System.Threading.Timer;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Real system output volume, read and monitored through the Windows Core Audio
-/// API. The endpoint notifies us whenever the master volume or mute state changes,
-/// no matter whether the change came from the keyboard, the mixer or the system UI.
-/// </summary>
 public sealed class AudioVolumeService : IDisposable
 {
     private readonly object _sync = new();
@@ -104,15 +99,12 @@ public sealed class AudioVolumeService : IDisposable
                 return;
             }
 
-            // The default output can change at any time (headphones, USB DAC,
-            // HDMI). Rebind the notification callback when that happens.
             _watch ??= new Timer(_ => EnsureEndpoint(), null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
         }
     }
 
     private void EnsureEndpoint()
     {
-        // The volume HUD is the only consumer of the endpoint watch.
         if (!SettingsService.Current.VolumeEnabled)
         {
             return;
@@ -178,13 +170,11 @@ public sealed class AudioVolumeService : IDisposable
                     }
                     catch
                     {
-                        // The old device may already be gone.
                     }
                 }
             }
             catch
             {
-                // No audio endpoint (or COM unavailable): the watcher retries.
             }
         }
     }
@@ -211,7 +201,6 @@ public sealed class AudioVolumeService : IDisposable
             }
             catch
             {
-                // ignored
             }
 
             _endpoint = null;
@@ -234,7 +223,6 @@ public sealed class AudioVolumeService : IDisposable
         }
         catch
         {
-            // A malformed callback payload must never take the island down.
         }
     }
 

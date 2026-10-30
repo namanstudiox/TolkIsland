@@ -30,12 +30,6 @@ public sealed record UpdateCheckResult(UpdateCheckStatus Status, UpdateInfo? Upd
         new(UpdateCheckStatus.Failed, null, message);
 }
 
-/// <summary>
-/// Opt-in update check. It reads a small JSON manifest that the vendor hosts —
-/// { "version": "1.2.0", "url": "https://…/TolkIsland.msi", "notes": "…" } —
-/// and compares it with the running assembly version. Nothing is downloaded or
-/// installed automatically; the caller decides.
-/// </summary>
 public sealed class UpdateService
 {
     private const int MaxManifestBytes = 8192;
@@ -165,10 +159,8 @@ public sealed class UpdateService
         }
     }
 
-    /// <summary>Opens the vendor download page in the default browser.</summary>
     public static bool OpenDownloadPage(UpdateInfo info)
     {
-        // Validate again at the boundary: the manifest is remote data.
         if (!SafeUrl.IsHttp(info.DownloadUrl, out var uri) || uri is null)
         {
             return false;

@@ -40,10 +40,6 @@ public partial class MessageWindow : Window
         Resources["PrimaryButtonPressedBrush"] = SystemColors.HighlightBrush;
     }
 
-    /// <summary>
-    /// Shows a themed message. Returns true when the primary action is chosen.
-    /// Pass no secondary label for a single-button notice.
-    /// </summary>
     public static bool Show(string title, string message, string primaryLabel, string? secondaryLabel = null)
     {
         var dialog = new MessageWindow();

@@ -5,11 +5,6 @@ using System.Text;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Encrypts secrets with Windows DPAPI for the signed-in user. The ciphertext
-/// can only be read by the same Windows account on this machine, so
-/// settings.json never has to hold a plaintext API key.
-/// </summary>
 internal static class SecretProtection
 {
     private const int UiForbidden = 0x1;

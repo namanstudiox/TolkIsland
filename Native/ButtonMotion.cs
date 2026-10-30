@@ -7,12 +7,6 @@ using Button = System.Windows.Controls.Button;
 
 namespace TolkIsland;
 
-/// <summary>
-/// Hover fade and press-scale for island buttons. Styles opt in with
-/// <c>ButtonMotion.Enabled</c> and expose HoverLayer, PressLayer and PressScale
-/// template parts. Every animation is released when it finishes, so a resting
-/// island never keeps a timing clock alive.
-/// </summary>
 internal static class ButtonMotion
 {
     private static readonly TimeSpan HoverIn = TimeSpan.FromMilliseconds(120);
@@ -20,11 +14,6 @@ internal static class ButtonMotion
     private static readonly TimeSpan PressIn = TimeSpan.FromMilliseconds(80);
     private static readonly TimeSpan PressOut = TimeSpan.FromMilliseconds(240);
 
-    /// <summary>
-    /// Mirror of the island's reduce-motion setting. When set, hover states snap
-    /// and the press scale is suppressed entirely; a button must not spring or
-    /// shrink for users who asked for stillness.
-    /// </summary>
     public static bool ReducedMotion { get; set; }
 
     public static readonly DependencyProperty EnabledProperty = DependencyProperty.RegisterAttached(
@@ -171,9 +160,6 @@ internal static class ButtonMotion
             return;
         }
 
-        // Released on completion with the target as the base value: a held clock
-        // would stay in the timing tree for as long as the pointer rests on the
-        // button, and nothing should tick in a resting island.
         var animation = new DoubleAnimation(from, to, new Duration(duration))
         {
             EasingFunction = easing,

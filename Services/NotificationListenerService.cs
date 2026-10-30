@@ -8,7 +8,6 @@ using Windows.UI.Notifications.Management;
 
 namespace TolkIsland.Services;
 
-/// <summary>Real Windows toast notifications via the UserNotificationListener API.</summary>
 public sealed record NotificationInfo(
     string AppName,
     string Title,
@@ -46,8 +45,6 @@ public sealed class NotificationListenerService : IDisposable
                 return false;
             }
 
-            // The listener is shared by every island window; only the first call
-            // requests access and starts the poll timer.
             if (_listener is not null && _pollTimer is not null)
             {
                 return IsAvailable;
@@ -81,8 +78,6 @@ public sealed class NotificationListenerService : IDisposable
 
             IsAvailable = true;
 
-            // Mark everything that already exists as seen so the island does not
-            // replay old toasts every time the app starts.
             await PollAsync(prime: true);
 
             if (_disposed)
@@ -90,8 +85,7 @@ public sealed class NotificationListenerService : IDisposable
                 return false;
             }
 
-            // UserNotificationListener.NotificationChanged throws for unpackaged
-            // desktop apps on current Windows builds, so poll instead. It is cheap.
+            // NotificationChanged is not available to unpackaged apps.
             _pollTimer = new Timer(
                 _ => _ = PollSafelyAsync(),
                 null,
@@ -102,8 +96,6 @@ public sealed class NotificationListenerService : IDisposable
         }
         catch
         {
-            // Toast listening is only available when Windows allows it; otherwise the
-            // island simply never enters the notification state instead of showing fake data.
             IsAvailable = false;
             return false;
         }
@@ -122,7 +114,6 @@ public sealed class NotificationListenerService : IDisposable
         }
         catch
         {
-            // A transient listener error must not take down the poll timer.
         }
     }
 
@@ -135,8 +126,6 @@ public sealed class NotificationListenerService : IDisposable
 
         if (!SettingsService.Current.NotificationsEnabled)
         {
-            // No consumer: skip the WinRT round-trip entirely. The first poll after
-            // the feature is re-enabled re-primes, so nothing arrives as "new".
             _resync = true;
             return;
         }
@@ -159,8 +148,6 @@ public sealed class NotificationListenerService : IDisposable
             {
                 present.Add(toast.Id);
 
-                // Only a toast we have never seen is new. This also stops a
-                // notification that disappears from being shown again.
                 bool isNew;
                 lock (_seenIds)
                 {
@@ -173,9 +160,6 @@ public sealed class NotificationListenerService : IDisposable
                 }
             }
 
-            // Forget toasts that are no longer in the Action Center so an ID Windows
-            // reuses later is not mistaken for an already-shown notification, and so
-            // the set cannot grow forever.
             lock (_seenIds)
             {
                 _seenIds.IntersectWith(present);
@@ -186,8 +170,6 @@ public sealed class NotificationListenerService : IDisposable
                 return;
             }
 
-            // A poll can turn up several toasts at once. Show every one of them,
-            // oldest first, instead of keeping only the newest and losing the rest.
             fresh.Sort((left, right) =>
             {
                 var byTime = left.CreationTime.CompareTo(right.CreationTime);
@@ -205,7 +187,6 @@ public sealed class NotificationListenerService : IDisposable
         }
         catch
         {
-            // ignored
         }
         finally
         {
@@ -266,7 +247,6 @@ public sealed class NotificationListenerService : IDisposable
         }
         catch
         {
-            // Some toasts cannot be removed by a desktop listener.
         }
     }
 

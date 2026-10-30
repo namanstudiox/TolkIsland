@@ -27,15 +27,8 @@ public enum MirrorState
 
 public sealed record MirrorFrameInfo(int Width, int Height, int Stride);
 
-/// <summary>
-/// Front-camera preview for the Mirror panel. Frames live in one reusable
-/// buffer and are only copied to a window's bitmap; nothing is recorded,
-/// encoded or written to disk. Capture starts with the first owner and stops
-/// with the last one, so closing the panel releases the camera immediately.
-/// </summary>
 public sealed class MirrorService : IDisposable
 {
-    // The island is 480 DIP wide, so a 960×540 stream is already supersampled.
     private const int PreferredWidth = 960;
     private const int PreferredHeight = 540;
 
@@ -68,12 +61,9 @@ public sealed class MirrorService : IDisposable
         }
     }
 
-    /// <summary>
-    /// The panel owns the camera while it is open. Several shells can watch the
-    /// same stream; capture stops only when every owner has let go.
-    /// </summary>
     public void SetActive(object owner, bool active)
     {
+        // Owner-counted so closing one panel cannot stop another shell's preview.
         if (_disposed)
         {
             return;
@@ -100,7 +90,6 @@ public sealed class MirrorService : IDisposable
         SetActive(owner, true);
     }
 
-    /// <summary>Copies the newest frame into a window-owned bitmap.</summary>
     public bool CopyLatestFrame(WriteableBitmap target)
     {
         lock (_frameGate)
@@ -194,8 +183,6 @@ public sealed class MirrorService : IDisposable
         {
             var device = await FindCameraAsync();
 
-            // The panel may have closed while devices were enumerated. Never
-            // open the camera for a request that is already over.
             if (!Wanted)
             {
                 SetState(MirrorState.Off);
@@ -208,8 +195,6 @@ public sealed class MirrorService : IDisposable
                 return;
             }
 
-            // The camera is a local preview only; ask for no audio and shared
-            // access so a running meeting app is not forcibly stopped.
             var capture = new MediaCapture();
             var settings = new MediaCaptureInitializationSettings
             {
@@ -247,7 +232,6 @@ public sealed class MirrorService : IDisposable
                 }
                 catch
                 {
-                    // Keep the camera's default format; frames still work.
                 }
             }
 
@@ -258,7 +242,6 @@ public sealed class MirrorService : IDisposable
             }
             catch
             {
-                // Some virtual cameras cannot emit BGRA; convert in the handler.
                 reader = await capture.CreateFrameReaderAsync(source);
             }
 
@@ -319,7 +302,6 @@ public sealed class MirrorService : IDisposable
             }
             catch
             {
-                // The device may already be gone.
             }
 
             reader.Dispose();
@@ -389,8 +371,6 @@ public sealed class MirrorService : IDisposable
 
                     bitmap.CopyToBuffer(_copyBuffer);
 
-                    // A reused IBuffer can still report the previous, larger
-                    // length; pin it to this frame before reading.
                     _copyBuffer.Length = (uint)byteCount;
 
                     using var dataReader = DataReader.FromBuffer(_copyBuffer);
@@ -416,7 +396,6 @@ public sealed class MirrorService : IDisposable
         }
         catch
         {
-            // A dropped frame must never take the app down.
         }
     }
 
@@ -468,7 +447,6 @@ public sealed class MirrorService : IDisposable
         }
         catch
         {
-            // A subscriber must not be able to break the capture pipeline.
         }
     }
 
@@ -513,7 +491,6 @@ public sealed class MirrorService : IDisposable
                 return null;
             }
 
-            // The panel is wider than it is tall; prefer 16:9 before raw pixels.
             return formats
                 .OrderBy(format => Math.Abs(
                     (double)format.VideoFormat.Width / format.VideoFormat.Height - 16.0 / 9.0))

@@ -12,12 +12,6 @@ namespace TolkIsland.Services;
 
 public sealed record IslandActivity(string Title, string Body, int DurationSeconds);
 
-/// <summary>
-/// A tiny loopback-only HTTP surface for local scripts. It binds 127.0.0.1,
-/// caps request bodies and concurrency, and never returns file contents or
-/// settings. Every request except /health must carry the per-install token so
-/// a web page cannot drive the island through the browser.
-/// </summary>
 public sealed class LocalApiService : IDisposable
 {
     public const int DefaultPort = 5178;
@@ -48,13 +42,10 @@ public sealed class LocalApiService : IDisposable
 
     public int Port => _port;
 
-    /// <summary>Required in the X-Tolk-Token header. Copied from Settings → Advanced.</summary>
     public string Token { get; }
 
-    /// <summary>True while the user has paused the island; commands are refused.</summary>
     public Func<bool>? PausedProvider { get; set; }
 
-    /// <summary>Maps a feature key ("media", "focus", "shelf", ...) to its setting.</summary>
     public Func<string, bool>? FeatureProvider { get; set; }
 
     public bool IsRunning
@@ -99,8 +90,6 @@ public sealed class LocalApiService : IDisposable
             }
             catch (Exception exception)
             {
-                // URL ACLs or another process can own the port. The rest of the
-                // island keeps working without the local API.
                 _listener = null;
                 DiagnosticsService.Write("api.start", exception);
             }
@@ -193,7 +182,6 @@ public sealed class LocalApiService : IDisposable
         }
     }
 
-    /// <summary>Returns whether the route matched, plus the status to log.</summary>
     private async Task<(bool Handled, int Status)> RouteAsync(
         HttpListenerRequest request,
         HttpListenerResponse response,
@@ -439,15 +427,12 @@ public sealed class LocalApiService : IDisposable
 
     private bool IsAuthorized(HttpListenerRequest request)
     {
-        // Browsers attach Origin to cross-origin calls. The API never needs it,
-        // and refusing it keeps a web page from reaching the routes at all.
+        // Foreign Host and any Origin header block DNS rebinding and web pages.
         if (request.Headers["Origin"] is not null)
         {
             return false;
         }
 
-        // Reject a mismatched Host header so DNS rebinding cannot redirect a
-        // page's request to the loopback listener.
         if (!string.Equals(
                 request.UserHostName,
                 $"127.0.0.1:{_port}",
@@ -488,8 +473,6 @@ public sealed class LocalApiService : IDisposable
         }
         catch
         {
-            // An unwritable profile folder still gets a token for this run; the
-            // Settings window shows whatever the live instance is using.
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         }
     }
@@ -598,7 +581,6 @@ public sealed class LocalApiService : IDisposable
         }
         catch
         {
-            // Client disconnected before the error envelope was written.
         }
     }
 
@@ -610,7 +592,6 @@ public sealed class LocalApiService : IDisposable
         }
         catch
         {
-            // Client disconnected.
         }
     }
 
@@ -637,7 +618,6 @@ public sealed class LocalApiService : IDisposable
             }
             catch
             {
-                // Listener already stopped.
             }
 
             _listener = null;

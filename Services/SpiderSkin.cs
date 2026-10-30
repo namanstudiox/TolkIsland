@@ -10,11 +10,6 @@ using Brushes = System.Windows.Media.Brushes;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// The Spider skin: a scarlet and cobalt suit palette over a deep navy shell,
-/// with a fine web canopy drawn behind the island content. Everything here is
-/// generated from plain shapes and colours; no external artwork is shipped.
-/// </summary>
 public static class SpiderSkin
 {
     public const string RedDark = "#FFE23636";
@@ -84,10 +79,6 @@ public static class SpiderSkin
         return brush;
     }
 
-    /// <summary>
-    /// Spokes fan from a hub above the island plus slightly sagging rings, so
-    /// only the visible canopy is drawn inside the shell silhouette.
-    /// </summary>
     public static Geometry BuildWeb(double width, double height)
     {
         var geometry = new StreamGeometry();
@@ -139,26 +130,15 @@ public static class SpiderSkin
         return geometry;
     }
 
-    /// <summary>
-    /// The hanging mascot: a small, original spider built like a suit hero.
-    /// A mask-shaped body with lens eyes and a web lattice, blue lower limbs
-    /// and red suit segments. Drawn at a fixed 56 x 58 design size so the
-    /// island can scale the whole image without a re-layout.
-    /// </summary>
     public static DrawingImage BuildBuddy(bool dark)
     {
         var group = new DrawingGroup();
 
-        // A transparent plate fixes the drawing bounds to the design box, so
-        // the thread stays centred and the body keeps its proportions when the
-        // image is stretched to the scaled mascot size.
         group.Children.Add(new GeometryDrawing(
             Brushes.Transparent,
             null,
             new RectangleGeometry(new Rect(0, 0, BuddyWidth, BuddyHeight))));
 
-        // Two-tone silk: a dark shade under a bright core stays legible on both
-        // dark and light wallpapers, unlike a single translucent stroke.
         var thread = new LineGeometry(new Point(28, 0), new Point(28, 17.2));
         group.Children.Add(new GeometryDrawing
         {
@@ -171,8 +151,6 @@ public static class SpiderSkin
             Pen = RoundPen(Color.FromArgb(0xE0, 0xF5, 0xF7, 0xFA), 0.8)
         });
 
-        // The body hangs a touch off the thread's axis: a perfect vertical
-        // totem reads as a logo, a small lean reads as something alive.
         var body = new DrawingGroup
         {
             Transform = new RotateTransform(-3.2, 28, 17.2)
@@ -200,11 +178,6 @@ public static class SpiderSkin
         double KneeWidth,
         double TipWidth);
 
-    /// <summary>
-    /// Eight articulated limbs, back pairs first so the front pair reads on
-    /// top. Each limb is a tapered ribbon rather than a constant stroke, which
-    /// is what keeps the silhouette from looking like a stick figure.
-    /// </summary>
     private static void AddBuddyLegs(DrawingGroup group, bool dark)
     {
         var limbs = new[]
@@ -309,7 +282,6 @@ public static class SpiderSkin
         group.Children.Add(new GeometryDrawing(
             fill, RoundPen(Color.FromArgb(0x8C, 0x0A, 0x06, 0x12), 0.5), abdomen));
 
-        // The mask casts a soft occlusion onto the abdomen it sits in front of.
         var occlusion = new DrawingGroup { ClipGeometry = abdomen };
         var shade = new RadialGradientBrush
         {
@@ -326,7 +298,6 @@ public static class SpiderSkin
         occlusion.Freeze();
         group.Children.Add(occlusion);
 
-        // The red chest panel follows the mask so the two masses read as one suit.
         var panel = BuildAbdomenPanelPath();
         var red = new LinearGradientBrush
         {
@@ -344,8 +315,6 @@ public static class SpiderSkin
             panel, new Point(28, 40.6), 6, 2.6, 2.6,
             dark ? Color.FromArgb(0x52, 0x10, 0x05, 0x0A) : Color.FromArgb(0x3C, 0x30, 0x06, 0x0A), 0.3));
 
-        // A cool rim keeps the dark blue silhouette separated from a dark
-        // wallpaper and reads as reflected light off the suit.
         var rim = new StreamGeometry();
         using (var context = rim.Open())
         {
@@ -401,8 +370,6 @@ public static class SpiderSkin
         chinShade.Freeze();
         group.Children.Add(chinShade);
 
-        // A fine lattice over the red, radiating from the bridge between the
-        // lenses: the suit cue the old round-eyed mascot was missing.
         group.Children.Add(WebDrawing(
             head, new Point(28, 29.0), 12, 4.6, 3.8,
             dark ? Color.FromArgb(0x5E, 0x14, 0x03, 0x08) : Color.FromArgb(0x48, 0x33, 0x05, 0x08), 0.32));
@@ -540,10 +507,6 @@ public static class SpiderSkin
         return geometry;
     }
 
-    /// <summary>
-    /// A lens, not a circle: a wide angular eye with the pointed corner swept
-    /// up and out, mirrored around the mask centre.
-    /// </summary>
     private static Geometry BuildEyePath(bool mirror)
     {
         double X(double x) => mirror ? BuddyWidth - x : x;
@@ -560,10 +523,6 @@ public static class SpiderSkin
         return geometry;
     }
 
-    /// <summary>
-    /// Builds a filled ribbon along a cubic with a linearly narrowing width, so
-    /// limbs taper like a real spider leg instead of keeping a stroke's gauge.
-    /// </summary>
     private static Geometry TaperedLimb(
         Point start, Point control1, Point control2, Point end,
         double startWidth, double endWidth)
@@ -607,10 +566,6 @@ public static class SpiderSkin
         return geometry;
     }
 
-    /// <summary>
-    /// A narrow sheen that follows the upper edge of a limb, so each segment
-    /// reads as a rounded volume instead of a flat silhouette.
-    /// </summary>
     private static Geometry LimbHighlight(
         Point start, Point control1, Point control2, Point end,
         double startWidth, double endWidth, double inset)

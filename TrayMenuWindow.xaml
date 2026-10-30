@@ -176,8 +176,6 @@
             <TranslateTransform x:Name="Slide" Y="5"/>
         </Grid.RenderTransform>
 
-        <!-- Shadow is a separate layer so the menu text stays crisp (a DropShadowEffect
-             on the content border rasterises its children). -->
         <Border CornerRadius="16" Background="{DynamicResource ShadowSurfaceBrush}" IsHitTestVisible="False">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="26" ShadowDepth="0" Opacity="0.5" Color="#FF000000"/>

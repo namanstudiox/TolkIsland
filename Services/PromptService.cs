@@ -13,12 +13,6 @@ using System.Threading.Tasks;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// The Ask panel's answer provider. A Groq key sends the prompt to Groq's
-/// fixed HTTPS endpoint; otherwise an Ollama-compatible URL on this PC or the
-/// local network is used. With neither configured the prompt is copied to the
-/// clipboard. Tolk Island has no server of its own.
-/// </summary>
 public static class PromptService
 {
     private const int MaxRequestChars = 8_000;
@@ -28,18 +22,15 @@ public static class PromptService
     private static readonly Uri OfficialGroqEndpoint =
         new("https://api.groq.com/openai/v1/chat/completions");
 
+    // Redirects are handled manually so a private endpoint cannot bounce out.
     private static readonly HttpClient Http = new(new HttpClientHandler
     {
-        // Redirects are resolved by hand so a local endpoint cannot bounce a
-        // prompt (and its body) to a public host, and so an API key is never
-        // forwarded to an unexpected origin.
         AllowAutoRedirect = false
     })
     {
         Timeout = TimeSpan.FromSeconds(30)
     };
 
-    /// <summary>Test hook. The shipping app always uses the fixed HTTPS endpoint.</summary>
     internal static Uri? GroqEndpointOverride { get; set; }
 
     private static Uri GroqEndpoint => GroqEndpointOverride ?? OfficialGroqEndpoint;
@@ -209,8 +200,6 @@ public static class PromptService
                 stream = false
             });
 
-            // Every hop is validated again: a name can pass the string check and
-            // still resolve to a public address, and a redirect can point anywhere.
             using var response = await SendLocalAsync(endpointUri, payload, token);
             if (response is null)
             {
@@ -295,8 +284,6 @@ public static class PromptService
             var location = response.Headers.Location;
             response.Dispose();
 
-            // Only 307/308 preserve the prompt body; following a 301/302/303
-            // would turn the write into a GET without the prompt anyway.
             if (location is null || status is not (307 or 308))
             {
                 return null;
@@ -308,11 +295,6 @@ public static class PromptService
         return null;
     }
 
-    /// <summary>
-    /// A DNS name that is not obviously local is resolved before the prompt is
-    /// attached, so ".local" or a hosts-file entry cannot silently point at a
-    /// public server.
-    /// </summary>
     private static async Task<bool> ResolvesToPrivateAsync(Uri uri, CancellationToken token)
     {
         if (uri.IsLoopback)
@@ -391,7 +373,6 @@ public static class PromptService
         }
         catch (JsonException)
         {
-            // A non-JSON body is still a usable answer.
         }
 
         return Clamp(body.Trim());

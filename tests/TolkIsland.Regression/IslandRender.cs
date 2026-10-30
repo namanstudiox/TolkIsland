@@ -10,11 +10,6 @@ using TolkIsland.Services;
 
 namespace TolkIsland.Regression;
 
-/// <summary>
-/// Offscreen still renders of the island for design review. The window is never
-/// shown, no system state is read into the images, and every value on screen is
-/// a fixed sample string. Output goes to the folder passed on the command line.
-/// </summary>
 internal static class IslandRender
 {
     public static int Run(string outputDirectory, string? accent = null, string? skin = null)
@@ -78,8 +73,6 @@ internal static class IslandRender
             Save(content, outputDirectory, "preview-player.png",
                 new Int32Rect(80, 0, 460, 172));
 
-            // Same layouts with the light theme, so the redesign is verified in
-            // both appearances rather than only the default dark one.
             SettingsService.Update(settings => settings.Theme = ThemeMode.Light);
 
             var light = new MainWindow(isPrimary: false);
@@ -109,15 +102,10 @@ internal static class IslandRender
             }
             catch
             {
-                // A leaked temp folder must not fail a render run.
             }
         }
     }
 
-    /// <summary>
-    /// Curated 2x stills for the promo set. Same fixed-sample rule as Run, but
-    /// richer states and a fictional track, so no image can carry real user data.
-    /// </summary>
     public static int RunPromo(string outputDirectory, string? accent = null)
     {
         var dataDirectory = Path.Combine(
@@ -233,16 +221,10 @@ internal static class IslandRender
             }
             catch
             {
-                // A leaked temp folder must not fail a render run.
             }
         }
     }
 
-    /// <summary>
-    /// One still per island panel in both themes, for reviewing every screen
-    /// rather than only the promo set. Lists are composed from fixed sample rows
-    /// so no real clipboard, note, calendar or shelf data can reach an image.
-    /// </summary>
     public static int RunScreens(string outputDirectory, string? accent = null, string? skin = null)
     {
         var dataDirectory = Path.Combine(
@@ -290,7 +272,6 @@ internal static class IslandRender
             }
             catch
             {
-                // A leaked temp folder must not fail a render run.
             }
         }
     }
@@ -358,8 +339,6 @@ internal static class IslandRender
         Save(content, folder, name + ".png",
             new Int32Rect((int)Math.Round((620 - width) / 2), 0, (int)Math.Round(width), (int)Math.Round(height) + extra), 2);
     }
-
-    // ------------------------------------------------------------ sample fills
 
     private static void FillTimer(MainWindow window)
     {
@@ -629,8 +608,6 @@ internal static class IslandRender
 
     private static void FillMirror(MainWindow window)
     {
-        // Offscreen stand-in for a camera frame: enough contrast to judge the
-        // scrims, overlay text and the full-bleed crop without opening a camera.
         var group = new DrawingGroup();
         var background = new LinearGradientBrush(
             Color.FromRgb(0x2A, 0x33, 0x40),
@@ -715,8 +692,6 @@ internal static class IslandRender
         target.Invoke(window, new object[] { progress });
     }
 
-    // -------------------------------------------------------------- chrome
-
     private static void RenderTray(string outputDirectory)
     {
         var menu = new TrayMenuWindow(new List<TrayMenuItem>
@@ -741,8 +716,8 @@ internal static class IslandRender
         var dialog = (MessageWindow)Activator.CreateInstance(typeof(MessageWindow), nonPublic: true)!;
         dialog.TitleText.Text = "Update available";
         dialog.MessageText.Text =
-            "Tolk Island 1.1.0 is ready. Your settings, notes and shortcuts stay exactly as they are — " +
-            "the update only replaces the app.";
+            "Tolk Island 1.1.0 is ready. Your settings, notes and shortcuts are unchanged. " +
+            "The update only replaces the app.";
         dialog.PrimaryButton.Content = "Get the update";
         dialog.SecondaryButton.Content = "Not now";
 
@@ -777,10 +752,6 @@ internal static class IslandRender
         return image;
     }
 
-    /// <summary>
-    /// Parses and lays out the settings window offscreen. It is never shown, so
-    /// this also acts as a runtime check that every XAML resource resolves.
-    /// </summary>
     private static void RenderSettings(string outputDirectory)
     {
         var folder = Path.Combine(outputDirectory, "settings");
@@ -805,7 +776,6 @@ internal static class IslandRender
         window.SettingsTabs.SelectedIndex = 0;
         root.UpdateLayout();
 
-        // 1366×768 at 200% leaves about 660×340 DIPs of work area.
         window.PrepareOffscreenLayout(660, 340);
         root.Measure(new Size(660, 340));
         root.Arrange(new Rect(0, 0, 660, 340));
@@ -830,10 +800,6 @@ internal static class IslandRender
         encoder.Save(stream);
     }
 
-    /// <summary>
-    /// ButtonMotion silently no-ops when a template loses its named parts, so a
-    /// render run fails loudly instead of shipping dead hover feedback.
-    /// </summary>
     private static void VerifyMotionParts(MainWindow window)
     {
         foreach (var button in new[]

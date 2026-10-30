@@ -5,11 +5,6 @@ using System.Text.RegularExpressions;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Local Pro unlock. There is no licence server in this repository; a
-/// well-formed Tolk Island key is enough to mark this install as Pro.
-/// Replace this with a signed store receipt when you ship.
-/// </summary>
 public static class LicenseService
 {
     private static readonly Regex KeyPattern = new(
@@ -57,7 +52,6 @@ public static class LicenseService
         return string.Equals(checksum, Checksum(payload), StringComparison.Ordinal);
     }
 
-    /// <summary>Builds a valid local key for this machine. Not a store receipt.</summary>
     public static string GenerateLocalKey()
     {
         var seed = Environment.MachineName + "|" + Environment.UserName;

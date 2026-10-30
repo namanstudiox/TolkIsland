@@ -8,11 +8,6 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace TolkIsland;
 
-/// <summary>
-/// The media progress bar. A Grid so the existing track, fill and knob stay
-/// unchanged, but focusable, arrow-key operable and exposed to UI Automation as
-/// a RangeValue instead of an unnamed graphic.
-/// </summary>
 public sealed class SeekSurface : Grid
 {
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
@@ -34,7 +29,6 @@ public sealed class SeekSurface : Grid
         KeyDown += OnKeyDown;
     }
 
-    /// <summary>Fired for keyboard and UI Automation seeks; seconds from the start.</summary>
     public event EventHandler<double>? SeekRequested;
 
     public double Value

@@ -31,9 +31,6 @@
         <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#8CFFFFFF"/>
         <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#A6FFFFFF"/>
 
-        <!-- Semantic chrome roles. Normal values match the dark glass skin; the
-             window swaps every one for the system palette while Windows high
-             contrast is on. -->
         <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#0EFFFFFF"/>
         <SolidColorBrush x:Key="InputHoverBrush" Color="#14FFFFFF"/>
         <SolidColorBrush x:Key="InputBorderBrush" Color="#12FFFFFF"/>
@@ -971,7 +968,7 @@
                             <StackPanel>
                                 <TextBlock Text="General" Style="{StaticResource SectionTitle}"/>
                                 <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
-                                           Text="Quiet defaults and a shortcut that feels native."/>
+                                           Text="Startup, idle behavior and the global shortcut."/>
 
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
@@ -1156,7 +1153,7 @@
                             <StackPanel>
                                 <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}"/>
                                 <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
-                                           Text="A quiet surface, soft motion, and one colour that does the talking."/>
+                                           Text="Theme, accent, motion and contrast."/>
 
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
@@ -1429,7 +1426,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Behaviour" Style="{StaticResource CardTitle}"/>
                                         <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
-                                                   Text="How the island answers the pointer, and how it feels when it does."/>
+                                                   Text="Pointer behavior, sounds, haptics and timing."/>
 
                                         <TextBlock Text="Expand with" Style="{StaticResource FieldLabel}"/>
                                         <ComboBox x:Name="ExpandModeCombo"
@@ -1692,7 +1689,7 @@
                                             </Border>
                                         </Grid>
                                         <TextBlock Style="{StaticResource CardHint}" Margin="0,11,0,0"
-                                                   Text="Media, power, notifications and quiet utilities in one surface at the top of your screen."/>
+                                                   Text="Media, power, notifications and utilities in one overlay."/>
                                         <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
                                             <Border Style="{StaticResource Pill}">
                                                 <TextBlock Text="No account" Style="{StaticResource PillText}"/>
@@ -1809,8 +1806,6 @@
                     </Grid>
                 </Border>
 
-                <!-- In-window modal. It keeps the glass surface and the keyboard
-                     model intact instead of dropping a stock Windows dialog on top. -->
                 <Border x:Name="DialogOverlay" Visibility="Collapsed" Panel.ZIndex="50"
                         Background="{DynamicResource DialogOverlayBrush}" CornerRadius="26" Margin="1">
                     <Border x:Name="DialogCard" Width="440"

@@ -10,7 +10,6 @@ using Timer = System.Threading.Timer;
 
 namespace TolkIsland.Services;
 
-/// <summary>Now Playing data read from the real Windows media sessions (SMTC).</summary>
 public sealed record MediaInfo(
     string Title,
     string Artist,
@@ -25,12 +24,9 @@ public sealed class MediaSessionService : IDisposable
 {
     private const long MaxThumbnailBytes = 2 * 1024 * 1024;
     private static readonly TimeSpan ThumbnailRetryDelay = TimeSpan.FromSeconds(10);
+    // Some players fire MediaPropertiesChanged before publishing the new metadata.
     private static readonly TimeSpan ThumbnailSettleWindow = TimeSpan.FromSeconds(6);
 
-    // Some players raise MediaPropertiesChanged before they publish the new
-    // metadata, so an immediate read still returns the previous track. Re-read
-    // shortly after every change, and keep a slow poll as a safety net for
-    // players that never raise that event at all.
     private static readonly TimeSpan MetadataRetryDelay = TimeSpan.FromMilliseconds(600);
     private static readonly TimeSpan MetadataPollInterval = TimeSpan.FromSeconds(2);
 
@@ -44,9 +40,6 @@ public sealed class MediaSessionService : IDisposable
     private int _refreshVersion;
     private volatile bool _disposed;
 
-    // Playback events fire often (pause, resume, timeline); the artwork itself
-    // only changes when the track does, so it is streamed once per track. A
-    // missing thumbnail is retried occasionally in case the app publishes it late.
     private sealed record ThumbnailCache(
         string Key,
         byte[]? Bytes,
@@ -61,7 +54,6 @@ public sealed class MediaSessionService : IDisposable
         _metadataPoll = new Timer(_ => _ = RefreshAsync(), null, Timeout.Infinite, Timeout.Infinite);
     }
 
-    /// <summary>Last known session state, so a window created late can seed itself.</summary>
     public MediaInfo? Current => _current;
 
     public event Action<MediaInfo?>? CurrentChanged;
@@ -98,7 +90,6 @@ public sealed class MediaSessionService : IDisposable
             }
             catch
             {
-                // SMTC can be unavailable (or fail transiently). RefreshAsync retries.
                 _manager = null;
             }
         }
@@ -188,7 +179,6 @@ public sealed class MediaSessionService : IDisposable
             var appId = session.SourceAppUserModelId ?? string.Empty;
             var thumbnail = await ResolveThumbnailAsync(props, appId);
 
-            // A newer refresh (or a session switch) wins; drop stale results.
             if (version != Volatile.Read(ref _refreshVersion) || !ReferenceEquals(session, _session))
             {
                 return;
@@ -211,7 +201,6 @@ public sealed class MediaSessionService : IDisposable
         }
         catch
         {
-            // Transient WinRT errors are ignored; the next event or tick retries.
         }
     }
 
@@ -287,7 +276,6 @@ public sealed class MediaSessionService : IDisposable
         }
         catch
         {
-            // The source app may not implement shuffle.
         }
     }
 
@@ -308,7 +296,6 @@ public sealed class MediaSessionService : IDisposable
         }
         catch
         {
-            // The source app may not implement repeat.
         }
     }
 
@@ -350,15 +337,9 @@ public sealed class MediaSessionService : IDisposable
         }
         catch
         {
-            // ignored
         }
     }
 
-    /// <summary>
-    /// SMTC only reports a timeline snapshot; while the track is playing the
-    /// position has to be advanced by the time since that snapshot, otherwise
-    /// the progress bar sits still between rare timeline updates.
-    /// </summary>
     private static MediaTimeline ReadTimeline(GlobalSystemMediaTransportControlsSession session)
     {
         var t = session.GetTimelineProperties();
@@ -371,7 +352,6 @@ public sealed class MediaSessionService : IDisposable
             isPlaying = playback.PlaybackStatus ==
                 GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
-            // Playback rate follows speed changes (podcasts, audiobooks, video).
             if (playback.PlaybackRate is { } rate
                 && double.IsFinite(rate)
                 && rate > 0
@@ -382,7 +362,6 @@ public sealed class MediaSessionService : IDisposable
         }
         catch
         {
-            // Keep the raw snapshot if playback info is unavailable.
         }
 
         return AdvanceTimeline(
@@ -441,9 +420,6 @@ public sealed class MediaSessionService : IDisposable
         {
             var delta = now - lastUpdated;
 
-            // A long gap is a sleep/resume or a clock change, not playback; the
-            // next SMTC event re-syncs. Anything shorter is real listening time,
-            // no matter how rarely the app publishes a timeline snapshot.
             if (delta > TimeSpan.Zero && delta < TimeSpan.FromHours(6))
             {
                 position += TimeSpan.FromTicks((long)(delta.Ticks * playbackRate));
@@ -467,14 +443,13 @@ public sealed class MediaSessionService : IDisposable
         GlobalSystemMediaTransportControlsSessionMediaProperties props,
         string appId)
     {
+        // Re-read art briefly after a track change; players can publish it late.
         var key = $"{props.Title}\u001F{props.Artist}\u001F{props.AlbumTitle}\u001F{appId}";
         var cache = Volatile.Read(ref _thumbnailCache);
         var now = DateTime.UtcNow;
 
         if (cache.Key == key)
         {
-            // A new track can briefly still expose the previous cover. Keep
-            // re-reading for a few seconds so late-published art replaces it.
             if (cache.Bytes is not null && now - cache.FirstSeenUtc >= ThumbnailSettleWindow)
             {
                 return cache.Bytes;

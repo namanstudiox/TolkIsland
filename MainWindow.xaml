@@ -29,8 +29,6 @@
         <SolidColorBrush x:Key="ShellBorderBrush" Color="#00000000"/>
         <SolidColorBrush x:Key="AccentTextBrush" Color="#FF0A84FF"/>
 
-        <!-- Idle home: controls sit on a barely-there tile; "on" is a tinted
-             surface with a coloured glyph, never a solid accent slab. -->
         <SolidColorBrush x:Key="HomeTileBrush" Color="#0CFFFFFF"/>
         <SolidColorBrush x:Key="HairlineBrush" Color="#1AFFFFFF"/>
         <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#24FF6B6B"/>
@@ -39,8 +37,6 @@
         <SolidColorBrush x:Key="WarmBrush" Color="#FFFFB340"/>
         <SolidColorBrush x:Key="WarmSurfaceBrush" Color="#24FFB340"/>
 
-        <!-- Depth without blur: every card is a soft top-lit surface with a
-             hairline edge, so panels feel layered instead of painted flat. -->
         <LinearGradientBrush x:Key="CardBrush" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#1AFFFFFF" Offset="0.0"/>
             <GradientStop Color="#0CFFFFFF" Offset="1.0"/>
@@ -49,13 +45,11 @@
         <SolidColorBrush x:Key="CardHoverBrush" Color="#26FFFFFF"/>
         <SolidColorBrush x:Key="CardHoverBorderBrush" Color="#38FFFFFF"/>
 
-        <!-- Scrollable lists end in a soft dissolve instead of a sliced card. -->
         <LinearGradientBrush x:Key="PanelFadeBrush" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#00000000" Offset="0.0"/>
             <GradientStop Color="#FF000000" Offset="1.0"/>
         </LinearGradientBrush>
 
-        <!-- One quiet scrollbar for every panel: a 5px thumb, no arrows. -->
         <Style TargetType="ScrollBar">
             <Setter Property="Width" Value="5"/>
             <Setter Property="Margin" Value="2,0,0,0"/>
@@ -92,7 +86,6 @@
             <GradientStop Color="#FFFF7A45" Offset="1.0"/>
         </LinearGradientBrush>
 
-        <!-- The sleeping island is a soft light seam, not a hard bar. -->
         <LinearGradientBrush x:Key="HiddenTabBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Color="#00FFFFFF" Offset="0.0"/>
             <GradientStop Color="#B3FFFFFF" Offset="0.5"/>
@@ -132,7 +125,6 @@
             </Setter>
         </Style>
 
-        <!-- One header recipe for every expanded panel: quiet title, quiet meta. -->
         <Style x:Key="PanelTitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="{StaticResource UiDisplay}"/>
             <Setter Property="FontSize" Value="18"/>
@@ -181,7 +173,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- A duration card reads as a choice, not a form control. -->
         <Style x:Key="FocusChoiceButton" TargetType="Button">
             <Setter Property="Height" Value="78"/>
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
@@ -216,7 +207,6 @@
             </Setter>
         </Style>
 
-        <!-- A note's check is a small rounded well, not a stock system checkbox. -->
         <Style x:Key="NoteCheckBox" TargetType="CheckBox">
             <Setter Property="Width" Value="18"/>
             <Setter Property="Height" Value="18"/>
@@ -443,8 +433,6 @@
             </Setter>
         </Style>
 
-        <!-- Dock items carry a glyph and a word; the surface only appears on
-             hover so the row reads as one quiet line of destinations. -->
         <Style x:Key="HomeDockButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
             <Setter Property="Width" Value="52"/>
             <Setter Property="Height" Value="43"/>
@@ -546,8 +534,6 @@
 
     </Window.Resources>
 
-    <!-- Fixed-size host window: only the black shell inside it morphs, so the
-         layered window never resizes and transitions stay smooth. -->
     <Grid Background="Transparent">
         <Grid x:Name="Shell"
               HorizontalAlignment="Center" VerticalAlignment="Top"
@@ -560,35 +546,25 @@
               MouseWheel="Shell_MouseWheel"
               AllowDrop="True" DragEnter="Shell_DragEnter" DragOver="Shell_DragOver" Drop="Shell_Drop">
 
-            <!-- One filled path: the notch body plus the two concave ears that
-                 flare into the top edge. The hairline keeps the light surface
-                 separated from a light desktop without adding seams. -->
             <Path x:Name="ShellShape" Fill="#FF000000"
                   Stroke="{DynamicResource ShellBorderBrush}" StrokeThickness="1"
                   Stretch="None" IsHitTestVisible="False" SnapsToDevicePixels="True"/>
 
-            <!-- Spider skin decoration: a web canopy drawn in shell coordinates
-                 and clipped to the silhouette. Collapsed for every other skin. -->
             <Path x:Name="WebOverlay" StrokeThickness="1" Stretch="None"
                   Visibility="Collapsed" IsHitTestVisible="False"
                   SnapsToDevicePixels="True"/>
 
-            <!-- Content stays inside the body; the 20 px ears are outside it.
-                 The layout transform keeps the content proportional to the
-                 island's size setting instead of clipping at smaller scales. -->
             <Grid x:Name="States" Margin="20,0">
                 <Grid.LayoutTransform>
                     <ScaleTransform x:Name="ContentScale" ScaleX="1" ScaleY="1"/>
                 </Grid.LayoutTransform>
 
-                <!-- ================= IDLE HIDDEN: a thin resting seam ================= -->
                 <Grid x:Name="IdleHiddenPanel" Visibility="Collapsed" Background="Transparent">
                     <Border x:Name="IdleHiddenTab" Width="44" Height="3" CornerRadius="1.5"
                             Background="{StaticResource HiddenTabBrush}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- ================= IDLE: clock left, battery right ================= -->
                 <Grid x:Name="IdlePanel" Margin="26,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                         <TextBlock x:Name="ClockText" Text="--:--"
@@ -621,7 +597,6 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= IDLE EXPANDED: the island home ================= -->
                 <Grid x:Name="IdleExpandedPanel" Margin="24,18" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="58"/>
@@ -632,7 +607,6 @@
                         <RowDefinition Height="44"/>
                     </Grid.RowDefinitions>
 
-                    <!-- The clock is the only hero; one action shares its line. -->
                     <Grid x:Name="IdleHomeHero">
                         <TextBlock x:Name="BigClockText" Text="--:--"
                                    FontFamily="{StaticResource UiDisplay}" FontSize="54" FontWeight="Light"
@@ -663,7 +637,6 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- One meta line under the clock: date left, power right. -->
                     <Grid x:Name="IdleHomeHeader" Grid.Row="1">
                         <TextBlock x:Name="DateText" Text=""
                                    FontFamily="{StaticResource UiText}" FontSize="12"
@@ -689,11 +662,8 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- One hairline separates "now" from "go". -->
                     <Border Grid.Row="3" Background="{DynamicResource HairlineBrush}"/>
 
-                    <!-- Four destinations, each with its own word, so no glyph
-                         has to be guessed. Surfaces only appear on hover. -->
                     <UniformGrid x:Name="IdleHomeDock" Grid.Row="5" Columns="4" Rows="1"
                                  Margin="-20,0">
                         <Button x:Name="ShelfEntryButton" Style="{StaticResource HomeDockButton}"
@@ -759,7 +729,6 @@
                     </UniformGrid>
                 </Grid>
 
-                <!-- ================= COMPACT NOW PLAYING: art left, waveform right ================= -->
                 <Grid x:Name="CompactPanel" Margin="16,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -778,7 +747,6 @@
                                 VerticalAlignment="Center" Height="24"/>
                 </Grid>
 
-                <!-- ================= COMPACT FOCUS ================= -->
                 <Grid x:Name="CompactFocusPanel" Margin="16,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -803,15 +771,12 @@
                                VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- ================= EXPANDED NOW PLAYING ================= -->
                 <Grid x:Name="ExpandedPanel" Margin="22,18" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Art is the one heavy surface here: a hairline edge and one
-                         soft shadow lift it above the shell without blurring text. -->
                     <Grid Width="104" Height="104" VerticalAlignment="Center">
                         <Border CornerRadius="22" Background="{DynamicResource ArtPlaceholder}"
                                 BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
@@ -906,7 +871,6 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= FOCUS PICKER ================= -->
                 <Grid x:Name="FocusPickerPanel" Margin="22,18" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -983,7 +947,6 @@
                     </Grid>
                 </Grid>
 
-                <!-- ================= FOCUS TIMER ================= -->
                 <Grid x:Name="TimerPanel" Margin="22,16" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1024,7 +987,6 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= FOCUS COMPLETE ================= -->
                 <Grid x:Name="FocusCompletePanel" Margin="22,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1052,7 +1014,6 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= NOTIFICATION ================= -->
                 <Grid x:Name="NotificationPanel" Margin="22,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1099,7 +1060,6 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= CHARGING ================= -->
                 <Grid x:Name="ChargingPanel" Margin="26,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1130,7 +1090,6 @@
                                Foreground="{DynamicResource PrimaryBrush}" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- ================= VOLUME ================= -->
                 <Grid x:Name="VolumePanel" Margin="26,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1158,7 +1117,6 @@
                                Foreground="{DynamicResource SecondaryBrush}" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- ================= BRIGHTNESS ================= -->
                 <Grid x:Name="BrightnessPanel" Margin="26,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1186,7 +1144,6 @@
                                Foreground="{DynamicResource SecondaryBrush}" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- ================= QUICK NOTES ================= -->
                 <Grid x:Name="NotesPanel" Margin="22,14" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1287,7 +1244,6 @@
                     </Grid>
                 </Grid>
 
-                <!-- ================= FILE SHELF ================= -->
                 <Grid x:Name="ShelfPanel" Margin="22,14" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1351,7 +1307,6 @@
                                Foreground="{DynamicResource SecondaryBrush}" Margin="2,0,0,0"/>
                 </Grid>
 
-                <!-- ================= CALENDAR / NEXT MEETING ================= -->
                 <Grid x:Name="CalendarPanel" Margin="22,14" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1392,7 +1347,6 @@
                                Foreground="{DynamicResource SecondaryBrush}" Margin="2,0,0,0"/>
                 </Grid>
 
-                <!-- ================= QUICK PROMPT ================= -->
                 <Grid x:Name="PromptPanel" Margin="22,16" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1481,9 +1435,6 @@
                     </Border>
                 </Grid>
 
-                <!-- ================= MIRROR ================= -->
-                <!-- The camera preview is the whole surface; text and controls sit
-                     on scrims so they stay legible over any frame. -->
                 <Grid x:Name="MirrorPanel" Margin="12" Visibility="Collapsed">
                     <Border CornerRadius="24" Background="#FF08080B" ClipToBounds="True">
                         <Grid>
@@ -1581,7 +1532,6 @@
                     </Border>
                 </Grid>
 
-                <!-- ================= LIVE ACTIVITY ================= -->
                 <Grid x:Name="LiveActivityPanel" Margin="22,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -1624,9 +1574,6 @@
 
             </Grid>
 
-            <!-- Spider skin mascot: a small spider on a single thread, hung
-                 from the island's bottom edge. Decorative, never hit-testable;
-                 the skin and the ambient states decide when it is shown. -->
             <Grid x:Name="SpiderBuddy"
                   Width="56" Height="58"
                   HorizontalAlignment="Center" VerticalAlignment="Bottom"

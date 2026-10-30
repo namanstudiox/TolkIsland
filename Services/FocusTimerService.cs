@@ -12,11 +12,6 @@ public enum FocusTimerRunState
     Paused
 }
 
-/// <summary>
-/// A real, user-started focus timer. It never runs on its own. Elapsed time is
-/// measured with a monotonic Stopwatch rather than counted in one-second ticks,
-/// so delayed ticks and sleep/resume do not make the timer drift or lag.
-/// </summary>
 public sealed class FocusTimerService : IDisposable
 {
     private const double TickIntervalMs = 1000;
@@ -24,8 +19,6 @@ public sealed class FocusTimerService : IDisposable
     private readonly object _sync = new();
     private readonly Stopwatch _running = new();
 
-    // One-shot: each tick schedules the next check, so the final check lands on
-    // the target instead of waiting for the next whole second.
     private readonly Timer _tick = new(TickIntervalMs) { AutoReset = false };
 
     private TimeSpan _accumulated;

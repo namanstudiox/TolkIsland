@@ -8,14 +8,8 @@ namespace TolkIsland.Services;
 
 public sealed record DownloadInfo(string Path, string Name, long Bytes);
 
-/// <summary>A download that is still growing on disk (browser .crdownload etc.).</summary>
 public sealed record TransferInfo(string Name, long Bytes, double BytesPerSecond);
 
-/// <summary>
-/// Watches the user Downloads folder for new files. Temporary browser
-/// placeholders (.crdownload, .tmp, .partial) are ignored until they settle,
-/// but while one is growing the island can show a live transfer activity.
-/// </summary>
 public sealed class DownloadWatchService : IDisposable
 {
     private static readonly string[] IgnoreExtensions =
@@ -65,7 +59,6 @@ public sealed class DownloadWatchService : IDisposable
                 _watcher.Renamed += (_, args) => OnRenamed(args.OldFullPath, args.FullPath);
                 _watcher.Deleted += (_, args) => Forget(args.FullPath);
                 _settle = new Timer(_ => Flush(), null, Timeout.Infinite, Timeout.Infinite);
-                // Started on demand by TrackTransfer; an idle watcher costs nothing.
                 _progress = new Timer(_ => PollTransfers(), null, Timeout.Infinite, Timeout.Infinite);
             }
             catch
@@ -152,11 +145,6 @@ public sealed class DownloadWatchService : IDisposable
         }
     }
 
-    /// <summary>
-    /// Compares each temporary file with its previous size once a second. The
-    /// growth is the real transfer rate; files that stop growing (paused
-    /// downloads) simply stop reporting.
-    /// </summary>
     private void PollTransfers()
     {
         if (_disposed)
@@ -192,9 +180,6 @@ public sealed class DownloadWatchService : IDisposable
 
                     if (size <= previous)
                     {
-                        // A paused or stalled download stops reporting, and after
-                        // half an hour the entry is dropped so the map cannot grow
-                        // for files the browser abandoned.
                         if (DateTime.UtcNow - started > TimeSpan.FromMinutes(30))
                         {
                             _transfers.Remove(path);
@@ -211,7 +196,6 @@ public sealed class DownloadWatchService : IDisposable
                 }
                 catch
                 {
-                    // The browser may still be holding the file open.
                 }
             }
         }
@@ -241,7 +225,6 @@ public sealed class DownloadWatchService : IDisposable
         }
     }
 
-
     private void Flush()
     {
         string? path;
@@ -268,7 +251,6 @@ public sealed class DownloadWatchService : IDisposable
         }
         catch
         {
-            // File still locked by the browser.
         }
     }
 

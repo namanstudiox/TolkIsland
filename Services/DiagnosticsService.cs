@@ -7,10 +7,6 @@ using Application = System.Windows.Application;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Writes unhandled exceptions and opt-in local detail to a rotating log.
-/// Nothing is uploaded; this build has no analytics endpoint.
-/// </summary>
 public static class DiagnosticsService
 {
     private const long MaxLogBytes = 1024 * 1024;
@@ -18,7 +14,6 @@ public static class DiagnosticsService
 
     public static string LogPath => Path.Combine(SettingsService.DataDirectory, "crash.log");
 
-    /// <summary>Set by the local API so request lines are captured while it runs.</summary>
     public static bool RequestLoggingEnabled { get; set; } = true;
 
     public static void Attach()
@@ -47,9 +42,6 @@ public static class DiagnosticsService
     {
         Write("Dispatcher", e.Exception);
 
-        // Recover from known, local failures only. An unknown dispatcher
-        // exception is a real defect: log it, then let the process fail
-        // instead of limping along in an undefined state.
         e.Handled = e.Exception is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
@@ -89,7 +81,6 @@ public static class DiagnosticsService
         }
         catch
         {
-            // Logging must never throw during a crash.
         }
     }
 
@@ -115,7 +106,6 @@ public static class DiagnosticsService
         }
         catch
         {
-            // Rotation is best-effort; appending still works.
         }
     }
 }

@@ -5,10 +5,6 @@ using System.Threading.Tasks;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Optional notification chime and Precision Touchpad haptic. Both stay off
-/// unless the user opts in — an always-on overlay should not make noise by default.
-/// </summary>
 public static class FeedbackService
 {
     [DllImport("user32.dll")]
@@ -31,7 +27,6 @@ public static class FeedbackService
                 }
                 catch
                 {
-                    // No audio device.
                 }
             }
         }
@@ -53,8 +48,6 @@ public static class FeedbackService
                 return;
             }
 
-            // SendHapticFeedbackForDuration is synchronous; run it off the UI
-            // thread so a slow HID round-trip cannot stall a notification card.
             await Task.Run(() =>
                 device.SimpleHapticsController.SendHapticFeedbackForDuration(
                     feedback[0],
@@ -63,7 +56,6 @@ public static class FeedbackService
         }
         catch
         {
-            // Most PCs have no haptic device.
         }
     }
 }

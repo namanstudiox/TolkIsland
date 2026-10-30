@@ -6,11 +6,6 @@ using Timer = System.Threading.Timer;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Reads and changes the brightness of the first monitor that exposes DDC/CI
-/// brightness controls. Internal laptop panels and many external displays
-/// support this; monitors that do not simply leave the HUD disabled.
-/// </summary>
 public sealed class BrightnessService : IDisposable
 {
     private readonly object _sync = new();
@@ -84,7 +79,6 @@ public sealed class BrightnessService : IDisposable
             return;
         }
 
-        // No DDC/CI traffic to the monitor while the brightness HUD is off.
         if (!SettingsService.Current.BrightnessEnabled)
         {
             return;
@@ -123,7 +117,6 @@ public sealed class BrightnessService : IDisposable
         }
         catch
         {
-            // No DDC/CI support on this machine.
         }
     }
 
@@ -156,7 +149,6 @@ public sealed class BrightnessService : IDisposable
         }
         catch
         {
-            // Keep enumerating other monitors.
         }
 
         return true;
@@ -188,7 +180,6 @@ public sealed class BrightnessService : IDisposable
                 }
                 catch
                 {
-                    // The monitor may have been unplugged.
                 }
             }
 

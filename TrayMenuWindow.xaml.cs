@@ -61,10 +61,6 @@ public partial class TrayMenuWindow : Window
         StatusDot.Fill = stateBrush;
     }
 
-    /// <summary>
-    /// Opens the menu at the pointer, or closes it when it is already open so a
-    /// second right-click on the tray icon works as a toggle.
-    /// </summary>
     public static void ShowMenu(IReadOnlyList<TrayMenuItem> items)
     {
         if (_open is { } existing)
@@ -165,16 +161,12 @@ public partial class TrayMenuWindow : Window
             var work = screen.WorkingArea;
             var dpi = GetScreenDpi(work);
 
-            // Cap the list to the monitor so the menu never runs off small or
-            // scaled-down displays; the header and shadow margins stay fixed.
             ItemsScroll.MaxHeight = Math.Max(220, work.Height / dpi - 190);
             UpdateLayout();
 
             var width = ActualWidth * dpi;
             var height = ActualHeight * dpi;
 
-            // Card edges sit just above and slightly right of the pointer; the
-            // shadow margin around the card is not part of that offset.
             var x = cursor.X + (ShadowMargin + 6) * dpi - width;
             var y = cursor.Y + (ShadowMargin - 4) * dpi - height;
 
@@ -209,7 +201,6 @@ public partial class TrayMenuWindow : Window
         }
         catch
         {
-            // Position is cosmetic; the menu still works from its default spot.
         }
         finally
         {
@@ -234,7 +225,6 @@ public partial class TrayMenuWindow : Window
         }
         catch
         {
-            // shcore.dll is unavailable; fall back to 100%.
         }
 
         return 1.0;
@@ -265,8 +255,6 @@ public partial class TrayMenuWindow : Window
 
     private void Window_Deactivated(object sender, EventArgs e)
     {
-        // A layered window can lose activation once while it is still being
-        // placed; only honour deactivation after placement so it does not flash.
         if (!_placed)
         {
             return;

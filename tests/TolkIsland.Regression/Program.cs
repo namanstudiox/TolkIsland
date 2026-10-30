@@ -13,12 +13,6 @@ using TolkIsland.Services;
 
 namespace TolkIsland.Regression;
 
-/// <summary>
-/// Dependency-free regression runner. Every case prints PASS or FAIL; the
-/// process exits 1 when any case fails, so CI and scripts can rely on it.
-/// No case touches the signed-in user's settings, clipboard or network beyond
-/// 127.0.0.1.
-/// </summary>
 internal static class Program
 {
     private static readonly List<(string Name, Func<Task> Run)> Cases = new();
@@ -81,7 +75,6 @@ internal static class Program
         }
         catch
         {
-            // A leaked temp folder must not turn a green run red.
         }
 
         return failures;
@@ -125,8 +118,6 @@ internal static class Program
             : $"{failures} of {Cases.Count} cases failed.");
         return failures == 0 ? 0 : 1;
     }
-
-    // ------------------------------------------------------------- contracts
 
     private static void RegisterContracts()
     {
@@ -253,8 +244,6 @@ internal static class Program
             return Task.CompletedTask;
         });
     }
-
-    // -------------------------------------------------------------- settings
 
     private static void RegisterSettings()
     {
@@ -588,8 +577,6 @@ internal static class Program
         });
     }
 
-    // ----------------------------------------------------------------- notes
-
     private static void RegisterNotes()
     {
         Register("notes persist and survive reload", () =>
@@ -723,8 +710,6 @@ internal static class Program
         });
     }
 
-    // ----------------------------------------------------------------- media
-
     private static void RegisterMedia()
     {
         Register("media clock advances past ten minutes and follows playback rate", () =>
@@ -853,8 +838,6 @@ internal static class Program
             AssertTrue(big.Message.Contains("8 KB", StringComparison.OrdinalIgnoreCase), "size copy");
         });
     }
-
-    // ---------------------------------------------------------------- prompt
 
     private static void RegisterPrompt()
     {
@@ -1087,8 +1070,6 @@ internal static class Program
         });
     }
 
-    // ------------------------------------------------------------- local API
-
     private const string ApiToken = "test-token-0123456789abcdef0123456789abcdef";
 
     private static void RegisterLocalApi()
@@ -1268,8 +1249,6 @@ internal static class Program
         });
     }
 
-    // ------------------------------------------------------------ diagnostics
-
     private static void RegisterDiagnostics()
     {
         Register("diagnostics rotates the log and records the build", () =>
@@ -1310,8 +1289,6 @@ internal static class Program
             return Task.CompletedTask;
         });
     }
-
-    // ---------------------------------------------------------------- support
 
     private static void Register(string name, Func<Task> run) => Cases.Add((name, run));
 
@@ -1438,7 +1415,6 @@ internal static class Program
                     }
                     catch
                     {
-                        // The client may disconnect mid-response.
                     }
                     finally
                     {
@@ -1448,7 +1424,6 @@ internal static class Program
                         }
                         catch
                         {
-                            // Already closed.
                         }
                     }
                 });
@@ -1465,7 +1440,6 @@ internal static class Program
             }
             catch
             {
-                // Already stopped.
             }
 
             try
@@ -1474,7 +1448,6 @@ internal static class Program
             }
             catch
             {
-                // The accept loop may already be gone.
             }
 
             _stop.Dispose();

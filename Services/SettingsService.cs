@@ -111,24 +111,18 @@ public sealed class AppSettings
 
     public bool PromptEnabled { get; set; }
 
-    /// <summary>Front-camera preview. Off by default; no frames are recorded.</summary>
     public bool MirrorEnabled { get; set; }
 
-    /// <summary>Opt-in update check against a JSON manifest the vendor hosts.</summary>
     public bool UpdateCheckEnabled { get; set; }
 
     public string UpdateManifestUrl { get; set; } = string.Empty;
 
-    /// <summary>Shows the Reply entry for message-style toasts.</summary>
     public bool NotificationReplyEnabled { get; set; } = true;
 
-    /// <summary>Shift + wheel (and horizontal drag) cycles through activities.</summary>
     public bool SwipeNavigationEnabled { get; set; } = true;
 
-    /// <summary>How long a notification peek stays open, in seconds.</summary>
     public int NotificationVisibleSeconds { get; set; } = 4;
 
-    /// <summary>How long the idle pill waits before it retracts to the thin tab.</summary>
     public int IdleHideSeconds { get; set; } = 10;
 
     public bool AnalyticsOptIn { get; set; }
@@ -145,10 +139,8 @@ public sealed class AppSettings
 
     public const string DefaultGroqModel = "llama-3.3-70b-versatile";
 
-    /// <summary>Runs the Ask panel on Groq's hosted API instead of the local endpoint.</summary>
     public bool GroqEnabled { get; set; }
 
-    /// <summary>DPAPI-protected Groq key. The plaintext is never written to disk.</summary>
     public string GroqApiKeyProtected { get; set; } = string.Empty;
 
     public string GroqModel { get; set; } = DefaultGroqModel;
@@ -164,10 +156,6 @@ public sealed class AppSettings
     };
 }
 
-/// <summary>
-/// The presentation-only slice of the settings. Sent while the Settings window
-/// is open so the real island can follow sliders without saving anything yet.
-/// </summary>
 public sealed record IslandPreview(
     PositionMode PositionMode,
     double HorizontalOffset,
@@ -180,11 +168,6 @@ public sealed record IslandPreview(
     bool HighContrast,
     bool ReducedMotion);
 
-/// <summary>
-/// One small, local JSON file for every user choice. Settings are deliberately
-/// stored under LocalAppData (not the install directory) so the app can live in
-/// Program Files or a portable folder without write-access problems.
-/// </summary>
 public static class SettingsService
 {
     private static readonly object Gate = new();
@@ -200,13 +183,8 @@ public static class SettingsService
 
     public static string SettingsPath => Path.Combine(DataDirectory, "settings.json");
 
-    // Must follow DataDirectory: Load() reads through SettingsPath, which uses it.
     private static AppSettings _current = Load();
 
-    /// <summary>
-    /// Points every settings read and write at another folder. The regression
-    /// harness uses this so a run can never touch the signed-in user's file.
-    /// </summary>
     public static void OverrideDataDirectory(string? directory)
     {
         lock (Gate)
@@ -247,9 +225,6 @@ public static class SettingsService
         SaveResult result;
         lock (Gate)
         {
-            // Mutate a clone and swap it in only after the file is written. A
-            // failed save must leave the running app and the disk in agreement
-            // instead of showing settings that will vanish on restart.
             var next = Clone(_current);
             mutate(next);
             Normalize(next);
@@ -310,7 +285,6 @@ public static class SettingsService
 
     private static AppSettings Load()
     {
-        // A corrupt settings file must not stop the island from starting.
         var loaded = SettingsStorage.Load(SettingsPath);
         Normalize(loaded);
         return loaded;

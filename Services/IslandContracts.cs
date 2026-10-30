@@ -6,7 +6,6 @@ using System.Reflection;
 
 namespace TolkIsland.Services;
 
-/// <summary>Typed outcome for every local file write that the UI reports on.</summary>
 public enum SaveFailure
 {
     None,
@@ -47,7 +46,6 @@ public static class AppInfo
 {
     public const int ApiVersion = 2;
 
-    /// <summary>Informational version without source-revision metadata.</summary>
     public static string Version
     {
         get
@@ -76,7 +74,6 @@ public enum CommandDisposition
     Unknown
 }
 
-/// <summary>One policy for every external command, independent of HTTP.</summary>
 public static class IslandCommandPolicy
 {
     public static CommandDisposition Evaluate(bool paused, bool featureEnabled, bool knownCommand)
@@ -109,10 +106,6 @@ public sealed record PromptResult(PromptState State, string Text)
     public bool IsStale => State == PromptState.Cancelled;
 }
 
-/// <summary>
-/// Generation-guarded prompt request. A late answer from a cancelled or
-/// replaced request is rejected instead of overwriting the current one.
-/// </summary>
 public sealed class PromptRequest
 {
     private readonly object _sync = new();
@@ -205,7 +198,6 @@ public sealed class PromptRequest
     public string LastText { get; private set; } = string.Empty;
 }
 
-/// <summary>Bounded FIFO; the oldest entry is dropped when the queue is full.</summary>
 public sealed class NotificationQueue<T>
 {
     private readonly object _sync = new();
@@ -229,7 +221,6 @@ public sealed class NotificationQueue<T>
         }
     }
 
-    /// <summary>Returns false when the queue was full and the oldest item was dropped.</summary>
     public bool TryEnqueue(T item)
     {
         lock (_sync)
@@ -269,11 +260,6 @@ public sealed class NotificationQueue<T>
     }
 }
 
-/// <summary>
-/// Reference count for the single physical audio capture. The first acquire
-/// starts the thread, the last release stops it, and the generation token
-/// prevents a stale stop from clearing levels a newer session owns.
-/// </summary>
 public sealed class CaptureLease
 {
     private readonly object _sync = new();
@@ -302,7 +288,6 @@ public sealed class CaptureLease
         }
     }
 
-    /// <summary>True when this acquire created the capture owner.</summary>
     public bool Acquire()
     {
         lock (_sync)
@@ -312,7 +297,6 @@ public sealed class CaptureLease
         }
     }
 
-    /// <summary>True when the last owner released and capture must stop.</summary>
     public bool Release()
     {
         lock (_sync)
@@ -383,7 +367,6 @@ public static class SafeUrl
         return true;
     }
 
-    /// <summary>Only known meeting providers, including their subdomains.</summary>
     public static bool IsTrustedMeeting(string? value, out Uri? uri)
     {
         uri = null;

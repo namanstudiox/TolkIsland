@@ -5,10 +5,6 @@ using System.Text.Json.Serialization;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// File I/O for settings, separated from the live singleton so the same code
-/// path can be exercised against a temporary directory in tests.
-/// </summary>
 public static class SettingsStorage
 {
     public static JsonSerializerOptions JsonOptions { get; } = new()
@@ -18,9 +14,9 @@ public static class SettingsStorage
         Converters = { new JsonStringEnumConverter() }
     };
 
-    /// <summary>Writes a temp file then swaps it in, so a crash cannot truncate the target.</summary>
     public static SaveResult WriteAtomic(string path, string json)
     {
+        // Write a temp file and replace the target so a crash cannot truncate it.
         try
         {
             var directory = Path.GetDirectoryName(path);
@@ -54,10 +50,6 @@ public static class SettingsStorage
         }
     }
 
-    /// <summary>
-    /// A corrupt file is moved aside and the last good backup is used instead of
-    /// silently overwriting every preference with defaults.
-    /// </summary>
     public static AppSettings Load(string path)
     {
         try
@@ -92,7 +84,6 @@ public static class SettingsStorage
         }
         catch
         {
-            // A backup is best-effort; the atomic write still protects the target.
         }
     }
 
@@ -108,7 +99,6 @@ public static class SettingsStorage
         }
         catch
         {
-            // Quarantine is best-effort; recovery still tries the backup.
         }
 
         try
@@ -127,7 +117,6 @@ public static class SettingsStorage
         }
         catch
         {
-            // A bad backup also falls through to defaults.
         }
 
         DiagnosticsService.WriteLine("settings", "No readable settings; starting from defaults");

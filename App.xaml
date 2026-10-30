@@ -8,9 +8,6 @@
             <GradientStop Color="#FFFFA45B" Offset="1.0"/>
         </LinearGradientBrush>
 
-        <!-- Vector source of the in-app mark. The .ico is a multi-frame file whose
-             first frame is 16 px; binding Image directly to it upscales that frame
-             and blurs the logo at every DPI. -->
         <DrawingImage x:Key="TolkLogoMark">
             <DrawingImage.Drawing>
                 <DrawingGroup>

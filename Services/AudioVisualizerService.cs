@@ -4,11 +4,6 @@ using System.Threading;
 
 namespace TolkIsland.Services;
 
-/// <summary>
-/// Spectrum of what the machine is actually playing. WASAPI loopback on the
-/// default render endpoint feeds a 1024-point FFT; five log-spaced bands are
-/// smoothed into 0..1 levels that drive the compact media waveform.
-/// </summary>
 public sealed class AudioVisualizerService : IDisposable
 {
     public const int BandCount = 5;
@@ -87,7 +82,6 @@ public sealed class AudioVisualizerService : IDisposable
         {
             if (_disposed || !_lease.Acquire())
             {
-                // Another owner is already capturing; one WASAPI session is shared.
                 return;
             }
 
@@ -112,10 +106,6 @@ public sealed class AudioVisualizerService : IDisposable
         _thread.Start();
     }
 
-    /// <summary>
-    /// Releases this owner's claim. The capture thread stops itself when the
-    /// last claim is gone, so the UI thread never waits on a WASAPI teardown.
-    /// </summary>
     public void Stop()
     {
         if (!_lease.Release())
@@ -140,8 +130,6 @@ public sealed class AudioVisualizerService : IDisposable
 
         _stopSignal.Set();
     }
-
-    // ------------------------------------------------------------- capture loop
 
     private void CaptureLoop(long generation)
     {
@@ -172,7 +160,6 @@ public sealed class AudioVisualizerService : IDisposable
 
                 if (!_disposed && _lease.Count > 0)
                 {
-                    // A new owner arrived while this thread was tearing down.
                     SpawnLocked(_lease.StartSession());
                 }
                 else if (_lease.IsCurrent(generation) || _lease.Count == 0)
@@ -222,8 +209,6 @@ public sealed class AudioVisualizerService : IDisposable
                 return false;
             }
 
-            // Shared-mode mixes are often WAVEFORMATEXTENSIBLE, where float
-            // carries tag 0xFFFE and the real type lives in the subformat GUID.
             var isFloat = format.FormatTag == 3;
             if (format.FormatTag == 0xFFFE && format.ExtraSize >= 22)
             {
@@ -279,7 +264,6 @@ public sealed class AudioVisualizerService : IDisposable
             }
             catch
             {
-                // The endpoint may already be gone.
             }
 
             if (formatPtr != IntPtr.Zero)
@@ -345,8 +329,6 @@ public sealed class AudioVisualizerService : IDisposable
 
             if (now - lastPacket >= StallTimeoutMs)
             {
-                // The endpoint went quiet without reporting an error (sleep,
-                // device removal): rebuild the session.
                 return;
             }
 
@@ -364,8 +346,6 @@ public sealed class AudioVisualizerService : IDisposable
             _stopSignal.Wait(PollSleepMs);
         }
     }
-
-    // ------------------------------------------------------------ sample intake
 
     private void Feed(IntPtr data, uint frames, int channels, int bits, bool isFloat)
     {
@@ -465,8 +445,6 @@ public sealed class AudioVisualizerService : IDisposable
         _totalSamples = 0;
     }
 
-    // ---------------------------------------------------------------- spectrum
-
     private void ComputeFrame(int sampleRate)
     {
         if (_totalSamples < FftSize)
@@ -557,8 +535,6 @@ public sealed class AudioVisualizerService : IDisposable
         }
     }
 
-    // ------------------------------------------------------------------- DSP
-
     private static float[] BuildWindow()
     {
         var window = new float[FftSize];
@@ -646,8 +622,6 @@ public sealed class AudioVisualizerService : IDisposable
             }
         }
     }
-
-    // ------------------------------------------------------------------ native
 
     private const uint AudioClientLoopback = 0x00020000;
     private const uint AudioClientBufferSilent = 0x00000002;

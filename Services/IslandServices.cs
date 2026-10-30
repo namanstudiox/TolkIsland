@@ -1,10 +1,5 @@
 namespace TolkIsland.Services;
 
-/// <summary>
-/// One shared set of Windows-facing services for every island window.
-/// All-monitor mode creates several shells; they must not each open their
-/// own SMTC, toast listener or HTTP port.
-/// </summary>
 public sealed class IslandServices
 {
     public static IslandServices Shared { get; } = new();
