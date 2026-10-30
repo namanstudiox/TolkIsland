@@ -6,10 +6,9 @@ Notable changes to Tolk Island. The app follows semantic versioning; the local A
 
 ### Added
 
+- Text scan panel using the local Windows OCR engine. The island hides while the screen is captured, and the panel offers copy, re-scan, no-text and missing-language states.
 - Mirror panel, off by default. Enabling it adds a fifth dock tile and opens a 480 x 280 front-camera preview. Capture stops when the panel closes, the island hides, the app pauses, the session locks or the feature is turned off.
 - Local API v2 with a token on every route except `/health`, rejected `Origin` headers, a strict `Host` check, an 8 KB body limit and a concurrency limit of eight.
-- Prompt cancellation with `Esc`, a request generation guard and a bounded response size.
-- Optional Groq provider. The key is stored as DPAPI ciphertext and only the configured endpoint is used.
 - Notification queue for up to three toast bursts and restoration of a pinned panel after a peek.
 - Spider skin and mascot, with a generated web overlay and a one-shot swing animation.
 - Idle home redesign with a Focus pill, quick-launch tiles and four dock entries, plus Mirror when enabled.
@@ -36,6 +35,7 @@ Notable changes to Tolk Island. The app follows semantic versioning; the local A
 - Wi-Fi, Bluetooth, Quiet and Night-light chips. Quiet mode remains a setting.
 - Widget dashboard, weather, accessory battery, call detection, Phone Link and the third-party manifest SDK.
 - Tray commands beyond show/hide, pause, settings and exit.
+- Ask panel, its local and Groq providers, the AI cards in Settings and the related API keys and tests.
 - `system` and `clipboard` from the local API `/show` panels.
 
 ### Fixed

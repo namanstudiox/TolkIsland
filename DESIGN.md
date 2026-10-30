@@ -76,8 +76,9 @@ Settings use their own dark palette:
 | Player | 460 x 172 |
 | Notification | 460 x 118 |
 | HUDs | 380 to 440 x 72 |
-| Panels | 460 x 150 to 208 |
+| Panels | 460 x 150 to 260 |
 | Mirror | 480 x 280 |
+| Text scan | 460 x 260 |
 | Panel padding | 22 horizontal, 16 to 20 vertical |
 | Card padding | 12 to 14 |
 | Scale | 0.85 to 1.25, default 1.0 |
@@ -119,7 +120,7 @@ Animations release their clocks when they finish. Reduced motion keeps every sta
 | HomeTileButton | 44 x 44, radius 12 |
 | HomePillButton | 44 high, radius 22, green surface |
 | Focus rings | 2 DIP outline, 3 DIP offset |
-| Idle home | Clock, date and battery header; Focus pill; four dock items, or five with Mirror |
+| Idle home | Clock, date and battery header; Focus pill; four dock items (Shelf, Notes, Calendar, OCR), or five with Mirror |
 | Timeline | 3 high track, accent fill, 8 DIP seek knob |
 | Mirror card | 24 radius, full-bleed preview, top and bottom scrims |
 | Empty values | Dash or a short reason, never a placeholder number |
@@ -142,8 +143,9 @@ Animations release their clocks when they finish. Reduced motion keeps every sta
 | Notification | Real toast | App, title, body, reply when available | Timer, next card, dismiss |
 | Charging | Charger starts | Battery HUD | 3 s |
 | Volume or brightness | System change | Slider HUD | 1.6 s or 1.8 s |
-| Shelf, Notes, Calendar, Prompt | Dock or API | Panel content | Esc, click outside, unpin |
+| Shelf, Notes, Calendar, OCR | Dock or API | Panel content | Esc, click outside, unpin |
 | Mirror | Opt-in dock tile | Mirrored camera preview, live state, permission states | Esc, close, click outside; camera stops |
+| Text scan | OCR dock tile or scan button | Screen text with a copy action; language and error states | Esc, click outside, unpin |
 | Live activity | Transfer or finished download | Progress or status | 5 s after it settles |
 
 A notification peek does not destroy a pinned panel. When the peek ends, the pinned panel returns. Pausing clears the notification queue and releases audio capture.
