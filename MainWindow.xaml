@@ -702,14 +702,14 @@
                                            HorizontalAlignment="Center" Margin="0,3,0,0"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="PromptEntryButton" Style="{StaticResource HomeDockButton}"
-                                ToolTip="Quick prompt"
-                                AutomationProperties.Name="Open quick prompt"
-                                Click="PromptEntry_Click">
+                        <Button x:Name="OcrEntryButton" Style="{StaticResource HomeDockButton}"
+                                ToolTip="Scan the screen for text"
+                                AutomationProperties.Name="Scan the screen for text"
+                                Click="OcrEntry_Click">
                             <StackPanel>
-                                <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                            HorizontalAlignment="Center"/>
-                                <TextBlock Text="Prompt" FontFamily="{StaticResource UiText}" FontSize="11"
+                                <TextBlock Text="OCR" FontFamily="{StaticResource UiText}" FontSize="11"
                                            Foreground="{DynamicResource SecondaryBrush}"
                                            HorizontalAlignment="Center" Margin="0,3,0,0"/>
                             </StackPanel>
@@ -1347,92 +1347,70 @@
                                Foreground="{DynamicResource SecondaryBrush}" Margin="2,0,0,0"/>
                 </Grid>
 
-                <Grid x:Name="PromptPanel" Margin="22,16" Visibility="Collapsed">
+                <Grid x:Name="OcrPanel" Margin="22,14" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Grid>
-                        <TextBlock Text="Ask" Style="{StaticResource PanelTitle}"/>
-                        <TextBlock x:Name="PromptPrivacyText" Text="Runs on your own machine"
-                                   Style="{StaticResource PanelMeta}"
-                                   HorizontalAlignment="Right"/>
+                        <TextBlock Text="Text scan" Style="{StaticResource PanelTitle}"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock x:Name="OcrCountText" Text="" Style="{StaticResource PanelMeta}"
+                                       Margin="0,0,10,0"/>
+                            <Button x:Name="OcrScanButton" Content="&#xE72C;" Style="{StaticResource IconButton}"
+                                    Width="30" Height="30" FontSize="13"
+                                    ToolTip="Scan the screen again"
+                                    AutomationProperties.Name="Scan the screen again"
+                                    Click="OcrScan_Click"/>
+                        </StackPanel>
                     </Grid>
 
-                    <Grid Grid.Row="1" Margin="0,9,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Height="34" CornerRadius="11"
-                                Background="{DynamicResource CardBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox x:Name="PromptInput" Padding="11,0,4,0" Height="32"
-                                         Background="Transparent" VerticalContentAlignment="Center"
-                                         Foreground="{DynamicResource PrimaryBrush}"
-                                         BorderThickness="0" CaretBrush="{DynamicResource PrimaryBrush}"
-                                         FontFamily="{StaticResource UiText}" FontSize="12"
-                                         ToolTip="Ask a question. With no AI provider set, Enter copies the prompt"
-                                         AutomationProperties.Name="Prompt"
-                                         KeyDown="PromptInput_KeyDown"/>
-                                <Button x:Name="PromptSendButton" Grid.Column="1" Content="Run"
-                                        Style="{StaticResource AccentChipButton}" Height="26" MinWidth="44"
-                                        Margin="0,0,4,0" VerticalAlignment="Center"
-                                        AutomationProperties.Name="Run prompt"
-                                        Click="PromptSend_Click"/>
-                                <TextBlock Text="Ask anything…" Margin="12,0,0,0"
-                                           VerticalAlignment="Center" IsHitTestVisible="False"
-                                           FontFamily="{StaticResource UiText}" FontSize="12"
-                                           Foreground="{DynamicResource SecondaryBrush}">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Text, ElementName=PromptInput}" Value="">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
-                        </Border>
-                        <Button x:Name="PromptCancelButton" Grid.Column="1" Content="Cancel"
-                                Style="{StaticResource TextButton}" Margin="6,0,0,0"
-                                Visibility="Collapsed"
-                                AutomationProperties.Name="Cancel prompt"
-                                Click="PromptCancel_Click"/>
+                    <Grid Grid.Row="1" Margin="0,8,0,4">
+                        <ScrollViewer x:Name="OcrScroller" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <TextBlock x:Name="OcrText" FontFamily="{StaticResource UiText}"
+                                       FontSize="12" LineHeight="18"
+                                       Foreground="{DynamicResource PrimaryBrush}"
+                                       TextWrapping="Wrap"/>
+                        </ScrollViewer>
+
+                        <StackPanel x:Name="OcrEmptyState" VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+                            <Border Width="40" Height="40" CornerRadius="13"
+                                    Background="{DynamicResource HomeTileBrush}" HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                           Foreground="{DynamicResource SecondaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock x:Name="OcrEmptyTitle" Text="Scanning the screen…"
+                                       FontFamily="{StaticResource UiText}" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource PrimaryBrush}"
+                                       AutomationProperties.LiveSetting="Polite"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                            <TextBlock x:Name="OcrEmptyHint" Text="Windows OCR runs on this PC."
+                                       FontFamily="{StaticResource UiText}" FontSize="11"
+                                       Foreground="{DynamicResource SecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            <Button x:Name="OcrLanguageButton" Content="Language settings"
+                                    Style="{StaticResource TextButton}" Margin="0,6,0,0"
+                                    Visibility="Collapsed"
+                                    AutomationProperties.Name="Open Windows language settings"
+                                    Click="OcrLanguage_Click"/>
+                        </StackPanel>
                     </Grid>
 
-                    <ScrollViewer x:Name="PromptScroller" Grid.Row="2" Margin="2,10,0,0"
-                                  VerticalScrollBarVisibility="Auto"
-                                  ScrollChanged="ListScroller_ScrollChanged"
-                                  Tag="{Binding ElementName=PromptFade}">
-                        <TextBlock x:Name="PromptAnswer" Text=""
-                                   FontFamily="{StaticResource UiText}" FontSize="12.5" LineHeight="19"
-                                   Foreground="{DynamicResource PrimaryBrush}" TextWrapping="Wrap"/>
-                    </ScrollViewer>
-                    <Border x:Name="PromptFade" Grid.Row="2" Height="22" VerticalAlignment="Bottom" Margin="0,10,0,0"
-                            IsHitTestVisible="False" Background="{DynamicResource PanelFadeBrush}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Value="Visible"
-                                                 Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=PromptScroller}">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
+                    <Grid Grid.Row="2">
+                        <TextBlock x:Name="OcrStatusText" FontFamily="{StaticResource UiText}"
+                                   FontSize="11" Foreground="{DynamicResource SecondaryBrush}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <Button x:Name="OcrCopyButton" Content="Copy text"
+                                Style="{StaticResource AccentChipButton}" Height="26" MinWidth="74"
+                                HorizontalAlignment="Right" Visibility="Collapsed"
+                                AutomationProperties.Name="Copy scanned text"
+                                Click="OcrCopy_Click"/>
+                    </Grid>
                 </Grid>
 
                 <Grid x:Name="MirrorPanel" Margin="12" Visibility="Collapsed">

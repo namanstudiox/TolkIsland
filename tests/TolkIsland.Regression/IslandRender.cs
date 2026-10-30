@@ -305,7 +305,7 @@ internal static class IslandRender
         Shot(window, content, folder, "13-shelf", window.ShelfPanel, 460, 190, FillShelf);
         Shot(window, content, folder, "14-notes", window.NotesPanel, 460, 208, FillNotes);
         Shot(window, content, folder, "15-calendar", window.CalendarPanel, 460, 150, FillCalendar);
-        Shot(window, content, folder, "16-prompt", window.PromptPanel, 460, 172, FillPrompt);
+        Shot(window, content, folder, "16-ocr", window.OcrPanel, 460, 260, FillOcr);
         Shot(window, content, folder, "17-live-activity", window.LiveActivityPanel, 460, 88, FillLiveActivity);
         Shot(window, content, folder, "18-mirror", window.MirrorPanel, 480, 280, FillMirror);
         Shot(window, content, folder, "18b-mirror-starting", window.MirrorPanel, 480, 280, FillMirrorStarting);
@@ -663,13 +663,20 @@ internal static class IslandRender
         window.MirrorSettingsButton.Visibility = Visibility.Visible;
     }
 
-    private static void FillPrompt(MainWindow window)
+    private static void FillOcr(MainWindow window)
     {
-        window.PromptInput.Text = "Summarise my next meeting";
-        window.PromptCancelButton.Visibility = Visibility.Visible;
-        window.PromptAnswer.Text =
-            "Your next meeting is the design review at 10:30. It is the only event on the island, " +
-            "and it carries a joining link.";
+        window.OcrText.Text =
+            "Design review\n" +
+            "Wednesday, 30 October\n" +
+            "10:30 - 11:15\n\n" +
+            "Open the prototype and review the new mirror states.\n" +
+            "Bring the latest screenshots and a short list of open questions.";
+        window.OcrScroller.Visibility = Visibility.Visible;
+        window.OcrEmptyState.Visibility = Visibility.Collapsed;
+        window.OcrCopyButton.Visibility = Visibility.Visible;
+        window.OcrLanguageButton.Visibility = Visibility.Collapsed;
+        window.OcrCountText.Text = "6 lines";
+        window.OcrStatusText.Text = "English (United States) · 14:32";
     }
 
     private static void FillLiveActivity(MainWindow window)
@@ -805,7 +812,7 @@ internal static class IslandRender
         foreach (var button in new[]
                  {
                      window.FocusEntryButton, window.ShelfEntryButton, window.NotesEntryButton,
-                     window.CalendarEntryButton, window.PromptEntryButton, window.MirrorEntryButton,
+                     window.CalendarEntryButton, window.OcrEntryButton, window.MirrorEntryButton,
                      window.MirrorCloseButton, window.PlayPauseButton, window.ShuffleButton
                  })
         {
@@ -829,7 +836,7 @@ internal static class IslandRender
                      window.NotificationPanel, window.FocusCompletePanel, window.FocusPickerPanel,
                      window.TimerPanel, window.ChargingPanel, window.VolumePanel, window.BrightnessPanel,
                      window.NotesPanel, window.ShelfPanel, window.CalendarPanel,
-                     window.PromptPanel, window.MirrorPanel, window.LiveActivityPanel
+                     window.OcrPanel, window.MirrorPanel, window.LiveActivityPanel
                  })
         {
             candidate.Visibility = Visibility.Collapsed;

@@ -1352,11 +1352,9 @@
                                                       AutomationProperties.Name="Enable calendar panel"/>
                                             <CheckBox x:Name="DownloadsCheck" Grid.Row="1" Content="Downloads"
                                                       AutomationProperties.Name="Enable download activities"/>
-                                            <CheckBox x:Name="PromptCheck" Grid.Row="1" Grid.Column="2" Content="Quick prompt"
-                                                      AutomationProperties.Name="Enable quick prompt"/>
-                                            <CheckBox x:Name="ReplyCheck" Grid.Row="2" Content="Reply entry"
+                                            <CheckBox x:Name="ReplyCheck" Grid.Row="1" Grid.Column="2" Content="Reply entry"
                                                       AutomationProperties.Name="Enable notification reply entry"/>
-                                            <CheckBox x:Name="SwipeCheck" Grid.Row="2" Grid.Column="2" Content="Shift + wheel"
+                                            <CheckBox x:Name="SwipeCheck" Grid.Row="2" Content="Shift + wheel"
                                                       AutomationProperties.Name="Enable activity gesture"/>
                                             <CheckBox x:Name="MirrorCheck" Grid.Row="3" Grid.ColumnSpan="3"
                                                       Margin="0,10,0,0"
@@ -1420,7 +1418,7 @@
                             <StackPanel>
                                 <TextBlock Text="Advanced" Style="{StaticResource SectionTitle}"/>
                                 <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
-                                           Text="Behaviour, timing, quick launch, local AI and update checks."/>
+                                           Text="Behaviour, timing, quick launch and update checks."/>
 
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
@@ -1503,65 +1501,6 @@
                                                  AutomationProperties.Name="Quick launch apps"/>
                                         <TextBlock Style="{StaticResource RowHint}"
                                                    Text="For example, C:\Program Files\Spotify\Spotify.exe."/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Style="{StaticResource Card}">
-                                    <StackPanel>
-                                        <TextBlock Text="Local AI" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
-                                                   Text="The prompt panel can answer through a model running on this PC or your own network. Nothing leaves the machine unless you point it at another host."/>
-                                        <TextBlock Text="Endpoint" Style="{StaticResource FieldLabel}"
-                                                   Margin="0,8,0,0"/>
-                                        <TextBox x:Name="LocalAiEndpointBox"
-                                                 AutomationProperties.Name="Local AI endpoint"
-                                                 ToolTip="http://127.0.0.1:11434"/>
-                                        <TextBlock x:Name="LocalAiError" Style="{StaticResource RowHint}"
-                                                   Foreground="{DynamicResource DangerBrush}"
-                                                   AutomationProperties.LiveSetting="Assertive"
-                                                   Visibility="Collapsed"/>
-                                        <TextBlock Text="Model" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="LocalAiModelBox"
-                                                 AutomationProperties.Name="Local AI model"
-                                                 ToolTip="llama3.2"/>
-                                        <TextBlock Style="{StaticResource RowHint}"
-                                                   Text="Speaks the Ollama chat format. Leave the endpoint empty to copy prompts to the clipboard instead."/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Style="{StaticResource Card}">
-                                    <StackPanel>
-                                        <TextBlock Text="Groq (cloud)" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
-                                                   Text="Answer the prompt panel with Groq's hosted models. Prompts leave this PC and go to api.groq.com with the key below."/>
-                                        <CheckBox x:Name="GroqCheck"
-                                                  AutomationProperties.Name="Use Groq for prompts">
-                                            <StackPanel>
-                                                <TextBlock Text="Use Groq for the Ask panel" Style="{StaticResource RowTitle}"/>
-                                                <TextBlock Text="Takes priority over the local endpoint."
-                                                           Style="{StaticResource RowHint}"/>
-                                            </StackPanel>
-                                        </CheckBox>
-                                        <TextBlock Text="API key" Style="{StaticResource FieldLabel}"
-                                                   Margin="0,12,0,0"/>
-                                        <PasswordBox x:Name="GroqKeyBox" MaxLength="256"
-                                                     AutomationProperties.Name="Groq API key"
-                                                     ToolTip="Starts with gsk_"/>
-                                        <TextBlock x:Name="GroqKeyError" Style="{StaticResource RowHint}"
-                                                   Foreground="{DynamicResource DangerBrush}"
-                                                   AutomationProperties.LiveSetting="Assertive"
-                                                   Visibility="Collapsed"/>
-                                        <TextBlock x:Name="GroqKeyHint" Style="{StaticResource RowHint}"/>
-                                        <Button x:Name="RemoveGroqKeyButton" Content="Remove saved key"
-                                                HorizontalAlignment="Left" Margin="0,8,0,0"
-                                                IsEnabled="False" Click="RemoveGroqKey_Click"
-                                                AutomationProperties.Name="Remove saved Groq key"/>
-                                        <TextBlock Text="Model" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="GroqModelBox"
-                                                 AutomationProperties.Name="Groq model"
-                                                 ToolTip="llama-3.3-70b-versatile"/>
-                                        <TextBlock Style="{StaticResource RowHint}"
-                                                   Text="The key is encrypted for your Windows account and is only sent to api.groq.com. Create one at console.groq.com/keys."/>
                                     </StackPanel>
                                 </Border>
 

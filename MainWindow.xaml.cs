@@ -59,7 +59,7 @@ public enum IslandState
     Shelf,
     Notes,
     Calendar,
-    Prompt,
+    Ocr,
     Mirror,
     LiveActivity
 }
@@ -101,8 +101,8 @@ public partial class MainWindow : Window
     private const double NotesHeight = 208;
     private const double CalendarWidth = 460;
     private const double CalendarHeight = 150;
-    private const double PromptWidth = 460;
-    private const double PromptHeight = 172;
+    private const double OcrWidth = 460;
+    private const double OcrHeight = 260;
     private const double MirrorWidth = 480;
     private const double MirrorHeight = 280;
     private const double LiveActivityWidth = 460;
@@ -171,8 +171,8 @@ public partial class MainWindow : Window
     private string _liveActivityGlyph = "\uE896";
     private double? _liveActivityFraction;
     private bool _highContrast;
-    private readonly PromptRequest _promptRequest = new();
-    private CancellationTokenSource? _promptCancel;
+    private bool _ocrScanning;
+    private OcrScanResult? _ocrResult;
     private Point _shelfDragStart;
     private string? _shelfDragPath;
     private bool _seeking;
@@ -668,7 +668,6 @@ public partial class MainWindow : Window
         var oldIdleHide = _settings.IdleHide;
         _preview = null;
         _settings = SettingsService.Current;
-        RefreshPromptPrivacy();
 
         if (!_settings.MediaEnabled)
         {
@@ -1239,7 +1238,7 @@ public partial class MainWindow : Window
             IslandState.Shelf => (ShelfWidth, ShelfHeight),
             IslandState.Notes => (NotesWidth, NotesHeight),
             IslandState.Calendar => (CalendarWidth, CalendarHeight),
-            IslandState.Prompt => (PromptWidth, PromptHeight),
+            IslandState.Ocr => (OcrWidth, OcrHeight),
             IslandState.Mirror => (MirrorWidth, MirrorHeight),
             IslandState.LiveActivity => (LiveActivityWidth, LiveActivityHeight),
             _ => (IdleWidth, IdleHeight)
@@ -1266,7 +1265,7 @@ public partial class MainWindow : Window
         IslandState.Shelf => ShelfPanel,
         IslandState.Notes => NotesPanel,
         IslandState.Calendar => CalendarPanel,
-        IslandState.Prompt => PromptPanel,
+        IslandState.Ocr => OcrPanel,
         IslandState.Mirror => MirrorPanel,
         IslandState.LiveActivity => LiveActivityPanel,
         _ => IdlePanel
@@ -1290,7 +1289,7 @@ public partial class MainWindow : Window
         ShelfPanel.Visibility = state == IslandState.Shelf ? Visibility.Visible : Visibility.Collapsed;
         NotesPanel.Visibility = state == IslandState.Notes ? Visibility.Visible : Visibility.Collapsed;
         CalendarPanel.Visibility = state == IslandState.Calendar ? Visibility.Visible : Visibility.Collapsed;
-        PromptPanel.Visibility = state == IslandState.Prompt ? Visibility.Visible : Visibility.Collapsed;
+        OcrPanel.Visibility = state == IslandState.Ocr ? Visibility.Visible : Visibility.Collapsed;
         MirrorPanel.Visibility = state == IslandState.Mirror ? Visibility.Visible : Visibility.Collapsed;
         LiveActivityPanel.Visibility = state == IslandState.LiveActivity ? Visibility.Visible : Visibility.Collapsed;
 
@@ -1307,11 +1306,6 @@ public partial class MainWindow : Window
 
         var previous = _state;
         _state = next;
-
-        if (previous == IslandState.Prompt && next != IslandState.Prompt && !IsOverlay(next))
-        {
-            CancelPrompt();
-        }
 
         if (previous == IslandState.Notification && next != IslandState.Notification)
         {
@@ -1657,7 +1651,7 @@ public partial class MainWindow : Window
                 RenderCalendarPanel();
                 break;
 
-            case IslandState.Prompt:
+            case IslandState.Ocr:
                 StopWaveform();
                 break;
 
@@ -3315,7 +3309,7 @@ public partial class MainWindow : Window
 
         if (_state is IslandState.ExpandedMedia or IslandState.IdleExpanded
             or IslandState.FocusTimer or IslandState.FocusPicker or IslandState.Shelf
-            or IslandState.Notes or IslandState.Calendar or IslandState.Prompt or IslandState.Mirror)
+            or IslandState.Notes or IslandState.Calendar or IslandState.Ocr or IslandState.Mirror)
         {
             _hoverLeave.Stop();
             _hoverLeave.Start();
@@ -3383,7 +3377,7 @@ public partial class MainWindow : Window
             case IslandState.Shelf:
             case IslandState.Notes:
             case IslandState.Calendar:
-            case IslandState.Prompt:
+            case IslandState.Ocr:
             case IslandState.Mirror:
                 break;
         }
@@ -3460,13 +3454,6 @@ public partial class MainWindow : Window
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape && _promptRequest.State == PromptState.Working)
-        {
-            CancelPrompt();
-            e.Handled = true;
-            return;
-        }
-
         if (e.Key == Key.Escape && _pinned)
         {
             ClosePinned();
@@ -3626,7 +3613,7 @@ public partial class MainWindow : Window
             Transition(ResolveResting());
         }
         else if (_state is IslandState.Shelf or IslandState.Notes
-            or IslandState.Calendar or IslandState.Prompt or IslandState.Mirror)
+            or IslandState.Calendar or IslandState.Ocr or IslandState.Mirror)
         {
             Transition(ResolveResting());
         }
@@ -3985,141 +3972,154 @@ public partial class MainWindow : Window
         fade.Visibility = hasOverflow && !atEnd ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void PromptEntry_Click(object sender, RoutedEventArgs e) => ShowPrompt(focusKeyboard: true);
-
-    private void PromptSend_Click(object sender, RoutedEventArgs e) => _ = RunPromptAsync();
-
-    private void PromptCancel_Click(object sender, RoutedEventArgs e) => CancelPrompt();
-
-    private void PromptInput_KeyDown(object sender, KeyEventArgs e)
+    private void OcrEntry_Click(object sender, RoutedEventArgs e)
     {
-        if (e.Key != Key.Enter)
-        {
-            return;
-        }
-
-        e.Handled = true;
-        _ = RunPromptAsync();
+        SetPinned(true);
+        Transition(IslandState.Ocr);
+        _ = ScanScreenAsync();
     }
 
-    private void CancelPrompt()
+    private async void OcrScan_Click(object sender, RoutedEventArgs e) => await ScanScreenAsync();
+
+    private void OcrCopy_Click(object sender, RoutedEventArgs e)
     {
-        if (_promptCancel is null || !_promptRequest.Cancel())
+        if (_ocrResult is not { Status: OcrStatus.Success, Text.Length: > 0 } result)
         {
             return;
         }
-
-        _promptCancel.Cancel();
-        if (PromptAnswer is not null)
-        {
-            PromptAnswer.Text = "Cancelled.";
-        }
-
-        EndPromptUi();
-    }
-
-    private async System.Threading.Tasks.Task RunPromptAsync()
-    {
-        // A generation guard drops late answers for an older request.
-        if (PromptInput is null || !_promptRequest.TryStart(out var generation))
-        {
-            return;
-        }
-
-        var prompt = PromptInput.Text?.Trim() ?? string.Empty;
-        if (prompt.Length == 0)
-        {
-            _promptRequest.Cancel();
-            return;
-        }
-
-        _promptCancel?.Dispose();
-        _promptCancel = new CancellationTokenSource();
-        var token = _promptCancel.Token;
-
-        BeginPromptUi();
 
         try
         {
-            var result = await PromptService.RunAsync(prompt, token);
-
-            if (Dispatcher.HasShutdownStarted || _promptRequest.Generation != generation)
-            {
-                return;
-            }
-
-            switch (result.State)
-            {
-                case PromptState.Cancelled:
-                    _promptRequest.Cancel();
-                    return;
-                case PromptState.Failed:
-                    if (!_promptRequest.Fail(generation, result.Text))
-                    {
-                        return;
-                    }
-                    break;
-                default:
-                    if (!_promptRequest.Complete(generation, result.Text))
-                    {
-                        return;
-                    }
-                    break;
-            }
-
-            if (PromptAnswer is not null)
-            {
-                PromptAnswer.Text = _promptRequest.LastText;
-            }
+            System.Windows.Clipboard.SetText(result.Text);
+            OcrStatusText.Text = "Copied.";
         }
-        catch (OperationCanceledException)
+        catch
         {
+            OcrStatusText.Text = "Clipboard unavailable.";
+        }
+    }
+
+    private void OcrLanguage_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("ms-settings:regionlanguage") { UseShellExecute = true });
         }
         catch (Exception exception)
         {
-            DiagnosticsService.Write("Prompt", exception);
-            if (_promptRequest.Fail(generation, "The prompt failed.") && PromptAnswer is not null)
-            {
-                PromptAnswer.Text = _promptRequest.LastText;
-            }
+            DiagnosticsService.Write("OCR", exception);
+        }
+    }
+
+    private System.Windows.Forms.Screen? OcrScreen()
+    {
+        if (_windowHandle != IntPtr.Zero)
+        {
+            return System.Windows.Forms.Screen.FromHandle(_windowHandle);
+        }
+
+        return ResolveTargetScreen();
+    }
+
+    private async Task ScanScreenAsync()
+    {
+        if (_ocrScanning)
+        {
+            return;
+        }
+
+        _ocrScanning = true;
+        _ocrResult = null;
+
+        try
+        {
+            OcrScanButton.IsEnabled = false;
+            OcrCopyButton.Visibility = Visibility.Collapsed;
+            OcrScroller.Visibility = Visibility.Collapsed;
+            OcrEmptyState.Visibility = Visibility.Visible;
+            OcrLanguageButton.Visibility = Visibility.Collapsed;
+            OcrEmptyTitle.Text = "Scanning the screen…";
+            OcrEmptyHint.Text = "Windows OCR runs on this PC.";
+            OcrCountText.Text = "…";
+            OcrStatusText.Text = string.Empty;
+            OcrText.Text = string.Empty;
+
+            var bounds = OcrScreen()?.Bounds
+                         ?? System.Windows.Forms.Screen.PrimaryScreen!.Bounds;
+
+            Shell.Visibility = Visibility.Collapsed;
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+            await Task.Delay(120);
+
+            var result = await OcrService.ScanAsync(bounds);
+            _ocrResult = result;
+            ApplyOcrResult(result);
+        }
+        catch (Exception exception)
+        {
+            DiagnosticsService.Write("OCR", exception);
+            OcrEmptyState.Visibility = Visibility.Visible;
+            OcrScroller.Visibility = Visibility.Collapsed;
+            OcrEmptyTitle.Text = "Scan failed";
+            OcrEmptyHint.Text = "The screen could not be read. Try again.";
+            OcrCountText.Text = string.Empty;
+            OcrCopyButton.Visibility = Visibility.Collapsed;
         }
         finally
         {
-            if (_promptRequest.State != PromptState.Working)
+            if (!Dispatcher.HasShutdownStarted)
             {
-                EndPromptUi();
+                Shell.Visibility = Visibility.Visible;
             }
+
+            OcrScanButton.IsEnabled = true;
+            _ocrScanning = false;
         }
     }
 
-    private void BeginPromptUi()
+    private void ApplyOcrResult(OcrScanResult result)
     {
-        if (PromptSendButton is not null)
-        {
-            PromptSendButton.IsEnabled = false;
-        }
+        OcrLanguageButton.Visibility = Visibility.Collapsed;
+        OcrCopyButton.Visibility = Visibility.Collapsed;
 
-        if (PromptCancelButton is not null)
+        switch (result.Status)
         {
-            PromptCancelButton.Visibility = Visibility.Visible;
-        }
+            case OcrStatus.Success:
+                OcrText.Text = result.Text;
+                OcrScroller.Visibility = Visibility.Visible;
+                OcrEmptyState.Visibility = Visibility.Collapsed;
+                OcrCopyButton.Visibility = Visibility.Visible;
+                OcrCountText.Text = result.Lines.Count == 1 ? "1 line" : $"{result.Lines.Count} lines";
+                OcrStatusText.Text = $"{result.Language} · {DateTime.Now:HH:mm}";
+                break;
 
-        if (PromptAnswer is not null)
-        {
-            PromptAnswer.Text = "Working…";
-        }
-    }
+            case OcrStatus.NoText:
+                OcrScroller.Visibility = Visibility.Collapsed;
+                OcrEmptyState.Visibility = Visibility.Visible;
+                OcrEmptyTitle.Text = "No text found";
+                OcrEmptyHint.Text = "Try a screen with more contrast.";
+                OcrCountText.Text = "none";
+                OcrStatusText.Text = result.Language;
+                break;
 
-    private void EndPromptUi()
-    {
-        if (PromptSendButton is not null)
-        {
-            PromptSendButton.IsEnabled = true;
-        }
+            case OcrStatus.NoLanguage:
+                OcrScroller.Visibility = Visibility.Collapsed;
+                OcrEmptyState.Visibility = Visibility.Visible;
+                OcrEmptyTitle.Text = "No OCR language";
+                OcrEmptyHint.Text = "Install a language pack in Windows Settings.";
+                OcrCountText.Text = string.Empty;
+                OcrStatusText.Text = string.Empty;
+                OcrLanguageButton.Visibility = Visibility.Visible;
+                break;
 
-        if (PromptCancelButton is not null)
-        {
-            PromptCancelButton.Visibility = Visibility.Collapsed;
+            default:
+                OcrScroller.Visibility = Visibility.Collapsed;
+                OcrEmptyState.Visibility = Visibility.Visible;
+                OcrEmptyTitle.Text = "Scan failed";
+                OcrEmptyHint.Text = "The screen could not be read. Try again.";
+                OcrCountText.Text = string.Empty;
+                OcrStatusText.Text = string.Empty;
+                break;
         }
     }
 
@@ -4664,6 +4664,7 @@ public partial class MainWindow : Window
         }
 
         panels.Add(IslandState.Notes);
+        panels.Add(IslandState.Ocr);
 
         if (_settings.MirrorEnabled)
         {
@@ -4733,7 +4734,6 @@ public partial class MainWindow : Window
             _notificationQueue.Clear();
             _pendingNotification = null;
             _overlayReturnState = null;
-            CancelPrompt();
             StopWaveform();
             HideIsland();
         }
@@ -4869,35 +4869,6 @@ public partial class MainWindow : Window
         _ = _calendar.RefreshAsync();
     }
 
-    public void ShowPrompt(bool focusKeyboard = false)
-    {
-        if (!_settings.PromptEnabled)
-        {
-            return;
-        }
-
-        SetPinned(true);
-        RefreshPromptPrivacy();
-        Transition(IslandState.Prompt);
-        if (focusKeyboard)
-        {
-            SetKeyboardFocusMode(true);
-            Dispatcher.BeginInvoke(new Action(() => PromptInput.Focus()));
-        }
-    }
-
-    private void RefreshPromptPrivacy()
-    {
-        if (PromptPrivacyText is null)
-        {
-            return;
-        }
-
-        PromptPrivacyText.Text = _settings.GroqEnabled
-            ? "Sent to Groq"
-            : "Runs on your own machine";
-    }
-
     private void FocusKeyboardIf(bool focusKeyboard)
     {
         if (focusKeyboard)
@@ -4927,10 +4898,6 @@ public partial class MainWindow : Window
         }
 
         _mirror.SetActive(this, false);
-
-        _promptCancel?.Cancel();
-        _promptCancel?.Dispose();
-        _promptCancel = null;
 
         if (_hotkeyRegistered && _windowHandle != IntPtr.Zero)
         {

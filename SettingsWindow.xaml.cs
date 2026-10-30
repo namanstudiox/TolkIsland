@@ -60,9 +60,8 @@ public partial class SettingsWindow : Window
     private bool _loading = true;
     private bool _dirty;
     private bool _allowClose;
-    private bool _closePromptOpen;
+    private bool _closeDialogOpen;
     private bool _removeLicense;
-    private bool _removeGroqKey;
     private bool _compact;
     private bool _short;
     private bool _dialogEscReturnsCancel = true;
@@ -131,7 +130,6 @@ public partial class SettingsWindow : Window
         ReducedMotionCheck.Unchecked += Visual_Changed;
         LicenseKeyBox.TextChanged += LicenseKey_TextChanged;
         UpdateUrlBox.TextChanged += UpdateUrl_TextChanged;
-        GroqKeyBox.PasswordChanged += GroqKey_PasswordChanged;
         SettingsTabs.SelectionChanged += SettingsTabs_SelectionChanged;
         SystemParameters.StaticPropertyChanged += OnSystemParametersChanged;
         SourceInitialized += SettingsWindow_SourceInitialized;
@@ -386,15 +384,6 @@ public partial class SettingsWindow : Window
         ExpandModeCombo.SelectedIndex = (int)settings.ExpandMode;
         SoundsCheck.IsChecked = settings.NotificationSounds;
         HapticsCheck.IsChecked = settings.HapticsEnabled;
-        LocalAiEndpointBox.Text = settings.LocalAiEndpoint;
-        LocalAiModelBox.Text = settings.LocalAiModel;
-        LocalAiError.Visibility = Visibility.Collapsed;
-        GroqCheck.IsChecked = settings.GroqEnabled;
-        GroqModelBox.Text = settings.GroqModel;
-        GroqKeyBox.Password = string.Empty;
-        GroqKeyError.Visibility = Visibility.Collapsed;
-        _removeGroqKey = false;
-        RefreshGroqKeyState();
         ApiBaseUrlBox.Text = IslandServices.Shared.LocalApi.BaseUrl;
         ApiTokenBox.Text = IslandServices.Shared.LocalApi.Token;
         ApiStatusText.Text = string.Empty;
@@ -452,7 +441,6 @@ public partial class SettingsWindow : Window
 
         CalendarCheck.IsChecked = settings.CalendarEnabled;
         DownloadsCheck.IsChecked = settings.DownloadsEnabled;
-        PromptCheck.IsChecked = settings.PromptEnabled;
         MirrorCheck.IsChecked = settings.MirrorEnabled;
         ReplyCheck.IsChecked = settings.NotificationReplyEnabled;
         SwipeCheck.IsChecked = settings.SwipeNavigationEnabled;
@@ -488,13 +476,13 @@ public partial class SettingsWindow : Window
         }
 
         var settings = SettingsService.Current;
-        var online = settings.GroqEnabled
-            || (settings.UpdateCheckEnabled && !string.IsNullOrWhiteSpace(settings.UpdateManifestUrl));
+        var online = settings.UpdateCheckEnabled
+            && !string.IsNullOrWhiteSpace(settings.UpdateManifestUrl);
 
         glyph.Text = online ? "\uE774" : "\uE72E";
         text.Text = online ? "Some features go online" : "On-device only";
         badge.ToolTip = online
-            ? "Groq prompts or update checks can leave this PC. Notes and history stay local."
+            ? "Update checks can leave this PC. Notes and history stay local."
             : "Every enabled feature runs on this PC. Nothing leaves it.";
     }
 
@@ -1203,62 +1191,6 @@ public partial class SettingsWindow : Window
         MarkDirty(sender, e);
     }
 
-    private void GroqKey_PasswordChanged(object sender, RoutedEventArgs e)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        if (GroqKeyBox.Password.Length > 0)
-        {
-            _removeGroqKey = false;
-            GroqKeyError.Visibility = Visibility.Collapsed;
-            RefreshGroqKeyState();
-            GroqKeyHint.Text = "A new key will replace the saved one when you apply.";
-        }
-        else
-        {
-            RefreshGroqKeyState();
-        }
-
-        MarkDirty(sender, new RoutedEventArgs());
-    }
-
-    private void RemoveGroqKey_Click(object sender, RoutedEventArgs e)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        _removeGroqKey = true;
-        _loading = true;
-        try
-        {
-            GroqKeyBox.Password = string.Empty;
-        }
-        finally
-        {
-            _loading = false;
-        }
-
-        GroqKeyError.Visibility = Visibility.Collapsed;
-        RefreshGroqKeyState();
-        MarkDirty(sender, e);
-    }
-
-    private void RefreshGroqKeyState()
-    {
-        var hasKey = !string.IsNullOrEmpty(SettingsService.Current.GroqApiKeyProtected);
-        GroqKeyHint.Text = _removeGroqKey
-            ? "The saved key will be removed when you apply."
-            : hasKey
-                ? "A key is saved. Leave this blank to keep it, or type a new one to replace it."
-                : "No key saved yet. Create one at console.groq.com/keys.";
-        RemoveGroqKeyButton.IsEnabled = hasKey && !_removeGroqKey;
-    }
-
     private bool TryStageLicense()
     {
         var key = LicenseKeyBox.Text.Trim().ToUpperInvariant();
@@ -1317,70 +1249,6 @@ public partial class SettingsWindow : Window
             return false;
         }
 
-        var localAi = LocalAiEndpointBox.Text.Trim();
-        if (localAi.Length > 0 && !localAi.Contains("://", StringComparison.Ordinal))
-        {
-            localAi = "http://" + localAi;
-        }
-
-        if (localAi.Length > 0 && !SafeUrl.IsLoopbackOrPrivate(localAi, out _))
-        {
-            SelectTab("Advanced");
-            LocalAiError.Text = "Use an address on this PC or your own network, for example http://127.0.0.1:11434.";
-            LocalAiError.Visibility = Visibility.Visible;
-            LocalAiEndpointBox.Focus();
-            LocalAiEndpointBox.SelectAll();
-            SetStatus("That local AI address is not valid.");
-            return false;
-        }
-
-        LocalAiError.Visibility = Visibility.Collapsed;
-        var localAiModel = LocalAiModelBox.Text.Trim();
-
-        var groqEnabled = GroqCheck.IsChecked == true;
-        var groqInput = GroqKeyBox.Password.Trim();
-        var storedGroqKey = SettingsService.Current.GroqApiKeyProtected;
-        var hasGroqKey = groqInput.Length > 0
-            || (!_removeGroqKey && !string.IsNullOrEmpty(storedGroqKey));
-        string? encryptedGroqKey = null;
-        GroqKeyError.Visibility = Visibility.Collapsed;
-
-        if (groqInput.Length > 0)
-        {
-            if (groqInput.Length < 8 || groqInput.Length > 256 || groqInput.Any(char.IsWhiteSpace))
-            {
-                SelectTab("Advanced");
-                GroqKeyError.Text = "That does not look like a Groq key. It starts with gsk_ and has no spaces.";
-                GroqKeyError.Visibility = Visibility.Visible;
-                GroqKeyBox.Focus();
-                SetStatus("Check the Groq API key.");
-                return false;
-            }
-
-            encryptedGroqKey = SecretProtection.Protect(groqInput);
-            if (encryptedGroqKey.Length == 0)
-            {
-                SelectTab("Advanced");
-                GroqKeyError.Text = "Windows could not encrypt this key. Try again.";
-                GroqKeyError.Visibility = Visibility.Visible;
-                GroqKeyBox.Focus();
-                SetStatus("The Groq API key was not saved.");
-                return false;
-            }
-        }
-
-        if (groqEnabled && !hasGroqKey)
-        {
-            SelectTab("Advanced");
-            GroqKeyError.Text = "Add a Groq API key, or turn Groq off.";
-            GroqKeyError.Visibility = Visibility.Visible;
-            GroqKeyBox.Focus();
-            SetStatus("Groq needs an API key.");
-            return false;
-        }
-
-        var groqModel = GroqModelBox.Text.Trim();
-
         var monitorMode = (MonitorMode)Math.Max(0, MonitorModeCombo.SelectedIndex);
         var positionMode = (PositionMode)Math.Max(0, PositionCombo.SelectedIndex);
         var theme = (ThemeMode)Math.Max(0, ThemeCombo.SelectedIndex);
@@ -1416,7 +1284,6 @@ public partial class SettingsWindow : Window
             settings.MediaFirst = MediaFirstCheck.IsChecked == true;
             settings.CalendarEnabled = CalendarCheck.IsChecked == true;
             settings.DownloadsEnabled = DownloadsCheck.IsChecked == true;
-            settings.PromptEnabled = PromptCheck.IsChecked == true;
             settings.MirrorEnabled = MirrorCheck.IsChecked == true;
             settings.NotificationReplyEnabled = ReplyCheck.IsChecked == true;
             settings.SwipeNavigationEnabled = SwipeCheck.IsChecked == true;
@@ -1426,18 +1293,6 @@ public partial class SettingsWindow : Window
             settings.ExpandMode = (ExpandMode)Math.Max(0, ExpandModeCombo.SelectedIndex);
             settings.NotificationSounds = SoundsCheck.IsChecked == true;
             settings.HapticsEnabled = HapticsCheck.IsChecked == true;
-            settings.LocalAiEndpoint = localAi;
-            settings.LocalAiModel = localAiModel.Length > 0 ? localAiModel : "llama3.2";
-            settings.GroqEnabled = groqEnabled;
-            settings.GroqModel = groqModel.Length > 0 ? groqModel : AppSettings.DefaultGroqModel;
-            if (encryptedGroqKey is not null)
-            {
-                settings.GroqApiKeyProtected = encryptedGroqKey;
-            }
-            else if (_removeGroqKey)
-            {
-                settings.GroqApiKeyProtected = string.Empty;
-            }
             settings.NotificationVisibleSeconds = (int)Math.Round(NotificationSecondsSlider.Value);
             settings.IdleHideSeconds = (int)Math.Round(IdleSecondsSlider.Value);
             settings.BlockedApps = SplitLines(BlockedAppsBox.Text);
@@ -1481,19 +1336,6 @@ public partial class SettingsWindow : Window
                 null,
                 null);
             return false;
-        }
-
-        _loading = true;
-        try
-        {
-            _removeGroqKey = false;
-            GroqKeyBox.Password = string.Empty;
-            GroqKeyError.Visibility = Visibility.Collapsed;
-            RefreshGroqKeyState();
-        }
-        finally
-        {
-            _loading = false;
         }
 
         _removeLicense = false;
@@ -1553,7 +1395,7 @@ public partial class SettingsWindow : Window
 
         e.Cancel = true;
 
-        if (!_closePromptOpen && _dialog is null)
+        if (!_closeDialogOpen && _dialog is null)
         {
             _ = RequestCloseAsync();
         }
@@ -1561,7 +1403,7 @@ public partial class SettingsWindow : Window
 
     private async Task RequestCloseAsync()
     {
-        if (_dialog is not null || _closePromptOpen)
+        if (_dialog is not null || _closeDialogOpen)
         {
             return;
         }
@@ -1573,14 +1415,14 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        _closePromptOpen = true;
+        _closeDialogOpen = true;
         var choice = await ShowDialogAsync(
             "Save your changes?",
             "The island is previewing changes that have not been applied yet.",
             "Save changes",
             "Discard",
             "Keep editing");
-        _closePromptOpen = false;
+        _closeDialogOpen = false;
 
         switch (choice)
         {
@@ -1862,7 +1704,7 @@ public partial class SettingsWindow : Window
     {
         var choice = await ShowDialogAsync(
             "Reset all settings?",
-            "Every preference, the Pro unlock, the licence key, the Groq API key and the Windows startup entry will be removed. Files in the shelf are not deleted.",
+            "Every preference, the Pro unlock, the licence key and the Windows startup entry will be removed. Files in the shelf are not deleted.",
             "Reset settings",
             null,
             "Cancel",

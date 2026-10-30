@@ -109,8 +109,6 @@ public sealed class AppSettings
 
     public bool DownloadsEnabled { get; set; } = true;
 
-    public bool PromptEnabled { get; set; }
-
     public bool MirrorEnabled { get; set; }
 
     public bool UpdateCheckEnabled { get; set; }
@@ -132,18 +130,6 @@ public sealed class AppSettings
     public bool ProUnlocked { get; set; }
 
     public string LicenseKey { get; set; } = string.Empty;
-
-    public string LocalAiEndpoint { get; set; } = string.Empty;
-
-    public string LocalAiModel { get; set; } = "llama3.2";
-
-    public const string DefaultGroqModel = "llama-3.3-70b-versatile";
-
-    public bool GroqEnabled { get; set; }
-
-    public string GroqApiKeyProtected { get; set; } = string.Empty;
-
-    public string GroqModel { get; set; } = DefaultGroqModel;
 
     public List<string> QuickLaunch { get; set; } = new();
 
@@ -305,22 +291,6 @@ public static class SettingsService
         settings.ShelfFiles ??= new List<string>();
         settings.QuickLaunch ??= new List<string>();
         settings.LicenseKey ??= string.Empty;
-        settings.LocalAiEndpoint ??= string.Empty;
-        settings.LocalAiModel ??= "llama3.2";
-        settings.GroqApiKeyProtected ??= string.Empty;
-        settings.GroqModel = string.IsNullOrWhiteSpace(settings.GroqModel)
-            ? AppSettings.DefaultGroqModel
-            : settings.GroqModel.Trim();
-        if (settings.GroqModel.Length > 80)
-        {
-            settings.GroqModel = settings.GroqModel[..80];
-        }
-
-        if (settings.GroqApiKeyProtected.Length > 4096)
-        {
-            settings.GroqApiKeyProtected = settings.GroqApiKeyProtected[..4096];
-        }
-
         settings.UpdateManifestUrl ??= string.Empty;
 
         settings.BlockedApps = CleanList(settings.BlockedApps);

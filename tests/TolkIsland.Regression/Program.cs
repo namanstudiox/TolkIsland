@@ -61,7 +61,6 @@ internal static class Program
         RegisterNotes();
         RegisterMedia();
         RegisterUpdates();
-        RegisterPrompt();
         RegisterLocalApi();
         RegisterDiagnostics();
 
@@ -144,7 +143,7 @@ internal static class Program
             return Task.CompletedTask;
         });
 
-        Register("local AI endpoints must be local or private", () =>
+        Register("private network endpoints stay local or private", () =>
         {
             AssertTrue(SafeUrl.IsLoopbackOrPrivate("http://127.0.0.1:11434/api/generate", out _), "loopback");
             AssertTrue(SafeUrl.IsLoopbackOrPrivate("http://localhost:8080/", out _), "localhost");
@@ -156,35 +155,6 @@ internal static class Program
             AssertTrue(!SafeUrl.IsLoopbackOrPrivate("http://172.32.0.1/", out _), "172.32 public");
             AssertTrue(!SafeUrl.IsLoopbackOrPrivate("http://11.0.0.1/", out _), "11.x public");
             AssertTrue(!SafeUrl.IsLoopbackOrPrivate("http://user@127.0.0.1/", out _), "userinfo");
-            return Task.CompletedTask;
-        });
-
-        Register("prompt request generation guard", () =>
-        {
-            var request = new PromptRequest();
-            Equal(PromptState.Idle, request.State, "idle");
-
-            AssertTrue(request.TryStart(out var first), "first start");
-            Equal(PromptState.Working, request.State, "working");
-            AssertTrue(!request.TryStart(out _), "no second start while working");
-
-            AssertTrue(request.Complete(first, "  hello  "), "complete");
-            Equal(PromptState.Succeeded, request.State, "succeeded");
-            Equal("hello", request.LastText, "trimmed text");
-            AssertTrue(!request.Complete(first, "again"), "double complete rejected");
-
-            AssertTrue(request.TryStart(out var second), "restart after success");
-            AssertTrue(second > first, "generation advances");
-
-            AssertTrue(request.Cancel(), "cancel working request");
-            Equal(PromptState.Cancelled, request.State, "cancelled");
-            AssertTrue(!request.Complete(second, "late"), "late answer rejected");
-            AssertTrue(!request.Fail(second, "late"), "late failure rejected");
-            AssertTrue(!request.Cancel(), "double cancel rejected");
-
-            AssertTrue(request.TryStart(out var third), "start after cancel");
-            AssertTrue(request.Fail(third, "  broke "), "fail");
-            Equal("broke", request.LastText, "failure text");
             return Task.CompletedTask;
         });
 
@@ -254,8 +224,7 @@ internal static class Program
             {
                 MonitorMode = MonitorMode.All,
                 ExpandMode = ExpandMode.Click,
-                LocalAiEndpoint = "http://127.0.0.1:11434/api/generate",
-                LocalAiModel = "qwen2.5",
+                QuickLaunch = new List<string> { "C:/Tools/Notes.exe" },
                 NotificationSounds = true,
                 HapticsEnabled = true,
                 Scale = 1.1,
@@ -268,8 +237,7 @@ internal static class Program
             var loaded = SettingsStorage.Load(path);
             Equal(MonitorMode.All, loaded.MonitorMode, "monitor mode");
             Equal(ExpandMode.Click, loaded.ExpandMode, "expand mode");
-            Equal("http://127.0.0.1:11434/api/generate", loaded.LocalAiEndpoint, "endpoint");
-            Equal("qwen2.5", loaded.LocalAiModel, "model");
+            Equal("C:/Tools/Notes.exe", loaded.QuickLaunch[0], "quick launch");
             Equal(SkinMode.Spider, loaded.Skin, "skin");
             AssertTrue(loaded.NotificationSounds, "sounds");
             AssertTrue(loaded.HapticsEnabled, "haptics");
@@ -293,15 +261,15 @@ internal static class Program
         Register("corrupt settings recover from the last good backup", () =>
         {
             var path = Path.Combine(SettingsService.DataDirectory, "recover", "settings.json");
-            var first = SettingsStorage.Save(path, new AppSettings { LocalAiModel = "phi3", Scale = 1.1 });
+            var first = SettingsStorage.Save(path, new AppSettings { LicenseKey = "first", Scale = 1.1 });
             AssertTrue(first.Ok, "first save: " + first.Message);
-            var second = SettingsStorage.Save(path, new AppSettings { LocalAiModel = "llama3", Scale = 1.2 });
+            var second = SettingsStorage.Save(path, new AppSettings { LicenseKey = "second", Scale = 1.2 });
             AssertTrue(second.Ok, "second save: " + second.Message);
             AssertTrue(File.Exists(path + ".bak"), "backup written before overwrite");
 
             File.WriteAllText(path, "{ broken");
             var loaded = SettingsStorage.Load(path);
-            Equal("phi3", loaded.LocalAiModel, "recovered model");
+            Equal("first", loaded.LicenseKey, "recovered licence");
             AssertTrue(Math.Abs(loaded.Scale - 1.1) < 0.001, "recovered scale");
             AssertTrue(File.Exists(path + ".bad"), "corrupt file quarantined");
             Equal("{ broken", File.ReadAllText(path + ".bad"), "quarantine keeps the original text");
@@ -372,8 +340,7 @@ internal static class Program
                     settings.ExpandMode = ExpandMode.Click;
                     settings.NotificationSounds = true;
                     settings.HapticsEnabled = true;
-                    settings.LocalAiEndpoint = "http://127.0.0.1:11434/";
-                    settings.LocalAiModel = "phi3";
+                    settings.QuickLaunch = new List<string> { "C:/Tools/App.exe" };
                 });
 
                 AssertTrue(result.Ok, "update saved: " + result.Message);
@@ -383,7 +350,7 @@ internal static class Program
                 var loaded = SettingsStorage.Load(SettingsService.SettingsPath);
                 Equal(MonitorMode.All, loaded.MonitorMode, "persisted monitor mode");
                 Equal(ExpandMode.Click, loaded.ExpandMode, "persisted expand mode");
-                Equal("phi3", loaded.LocalAiModel, "persisted model");
+                Equal("C:/Tools/App.exe", loaded.QuickLaunch[0], "persisted quick launch");
             }
             finally
             {
@@ -510,71 +477,6 @@ internal static class Program
             return Task.CompletedTask;
         });
 
-        Register("secret protection round-trips and rejects junk", () =>
-        {
-            const string secret = "gsk_test_1234567890";
-            var cipher = SecretProtection.Protect(secret);
-            AssertTrue(cipher.Length > 0, "cipher produced");
-            AssertTrue(!cipher.Contains(secret, StringComparison.Ordinal), "cipher has no plaintext");
-            Equal(secret, SecretProtection.Unprotect(cipher) ?? string.Empty, "round trip");
-            AssertTrue(SecretProtection.Unprotect("not-base64") is null, "junk ciphertext rejected");
-            AssertTrue(SecretProtection.Unprotect(cipher[..^4]) is null, "tampered ciphertext rejected");
-            Equal(string.Empty, SecretProtection.Protect(string.Empty), "empty secret");
-            return Task.CompletedTask;
-        });
-
-        Register("Groq settings persist without the plaintext key", () =>
-        {
-            var path = Path.Combine(SettingsService.DataDirectory, "groq", "settings.json");
-            var cipher = SecretProtection.Protect("gsk_persist_test");
-            var settings = new AppSettings
-            {
-                GroqEnabled = true,
-                GroqModel = "test-model",
-                GroqApiKeyProtected = cipher
-            };
-
-            var saved = SettingsStorage.Save(path, settings);
-            AssertTrue(saved.Ok, "save: " + saved.Message);
-            var json = File.ReadAllText(path);
-            AssertTrue(!json.Contains("gsk_persist_test", StringComparison.Ordinal), "no plaintext on disk");
-
-            var loaded = SettingsStorage.Load(path);
-            AssertTrue(loaded.GroqEnabled, "enabled");
-            Equal("test-model", loaded.GroqModel, "model");
-            Equal("gsk_persist_test", SecretProtection.Unprotect(loaded.GroqApiKeyProtected) ?? string.Empty, "key decrypts");
-            return Task.CompletedTask;
-        });
-
-        Register("Groq settings normalize and persist", () =>
-        {
-            SettingsService.Reset();
-            try
-            {
-                var cipher = SecretProtection.Protect("gsk_normalized");
-                var result = SettingsService.Update(settings =>
-                {
-                    settings.GroqEnabled = true;
-                    settings.GroqModel = "   ";
-                    settings.GroqApiKeyProtected = cipher;
-                });
-
-                AssertTrue(result.Ok, "save: " + result.Message);
-                AssertTrue(SettingsService.Current.GroqEnabled, "enabled");
-                Equal(AppSettings.DefaultGroqModel, SettingsService.Current.GroqModel, "default model");
-                var loaded = SettingsStorage.Load(SettingsService.SettingsPath);
-                Equal(cipher, loaded.GroqApiKeyProtected, "cipher persisted");
-                AssertTrue(
-                    !File.ReadAllText(SettingsService.SettingsPath).Contains("gsk_normalized", StringComparison.Ordinal),
-                    "no plaintext on disk");
-            }
-            finally
-            {
-                SettingsService.Reset();
-            }
-
-            return Task.CompletedTask;
-        });
     }
 
     private static void RegisterNotes()
@@ -836,237 +738,6 @@ internal static class Program
 
             var big = await Check("big");
             AssertTrue(big.Message.Contains("8 KB", StringComparison.OrdinalIgnoreCase), "size copy");
-        });
-    }
-
-    private static void RegisterPrompt()
-    {
-        Register("prompt service reports empty and unsafe requests", async () =>
-        {
-            SettingsService.Reset();
-            var empty = await PromptService.RunAsync("   ");
-            Equal(PromptState.Succeeded, empty.State, "empty prompt");
-            Equal(string.Empty, empty.Text, "empty text");
-
-            SettingsService.Update(settings => settings.LocalAiEndpoint = "https://api.example.com/chat");
-            var remote = await PromptService.RunAsync("hello");
-            Equal(PromptState.Failed, remote.State, "public endpoint rejected");
-            AssertTrue(remote.Text.Contains("your own network", StringComparison.OrdinalIgnoreCase), "unsafe copy");
-        });
-
-        Register("prompt service talks to a local endpoint", async () =>
-        {
-            using var server = new TestServer();
-            server.Handler = context =>
-            {
-                var path = context.Request.Url?.AbsolutePath ?? "/";
-                return path switch
-                {
-                    "/err" => WriteText(context, 500, "{}"),
-                    "/big" => WriteText(context, 200, new string('y', 300 * 1024)),
-                    _ => WriteText(context, 200, """{"response":"  Hello from the model  "}""")
-                };
-            };
-
-            SettingsService.Update(settings =>
-            {
-                settings.LocalAiEndpoint = server.BaseUrl;
-                settings.LocalAiModel = "test-model";
-            });
-
-            var ok = await PromptService.RunAsync("hello");
-            Equal(PromptState.Succeeded, ok.State, "success state");
-            Equal("Hello from the model", ok.Text, "parsed answer");
-
-            SettingsService.Update(settings => settings.LocalAiEndpoint = server.BaseUrl + "err");
-            var failed = await PromptService.RunAsync("hello");
-            Equal(PromptState.Failed, failed.State, "http error state");
-            AssertTrue(failed.Text.Contains("500", StringComparison.Ordinal), "status copy");
-
-            SettingsService.Update(settings => settings.LocalAiEndpoint = server.BaseUrl + "big");
-            var tooLarge = await PromptService.RunAsync("hello");
-            Equal(PromptState.Failed, tooLarge.State, "oversize state");
-            AssertTrue(tooLarge.Text.Contains("too large", StringComparison.OrdinalIgnoreCase), "oversize copy");
-        });
-
-        Register("prompt redirects cannot leave the local network", async () =>
-        {
-            using var target = new TestServer();
-            target.Handler = _ => WriteText(_, 200, """{"response":"redirected"}""");
-
-            using var redirector = new TestServer();
-            redirector.Handler = context =>
-            {
-                context.Response.StatusCode = 307;
-                context.Response.RedirectLocation = target.BaseUrl;
-                return Task.CompletedTask;
-            };
-
-            SettingsService.Update(settings => settings.LocalAiEndpoint = redirector.BaseUrl);
-            var followed = await PromptService.RunAsync("hello");
-            Equal(PromptState.Succeeded, followed.State, "307 to a private target is followed");
-            Equal("redirected", followed.Text, "answer from redirect target");
-            Equal(1, target.Hits, "target saw the prompt once");
-
-            redirector.Handler = context =>
-            {
-                context.Response.StatusCode = 307;
-                context.Response.RedirectLocation = "http://example.com/steal";
-                return Task.CompletedTask;
-            };
-
-            var blocked = await PromptService.RunAsync("secret prompt");
-            Equal(PromptState.Failed, blocked.State, "public redirect refused");
-            AssertTrue(blocked.Text.Contains("blocked", StringComparison.OrdinalIgnoreCase), "blocked copy");
-
-            redirector.Handler = context =>
-            {
-                context.Response.StatusCode = 302;
-                context.Response.RedirectLocation = target.BaseUrl;
-                return Task.CompletedTask;
-            };
-
-            var before = target.Hits;
-            var refused = await PromptService.RunAsync("secret prompt");
-            Equal(PromptState.Failed, refused.State, "302 refused");
-            Equal(before, target.Hits, "302 never reached the target");
-        });
-
-        Register("prompt cancellation is bounded and terminal", async () =>
-        {
-            var started = new ManualResetEventSlim(false);
-            var release = new ManualResetEventSlim(false);
-
-            using var server = new TestServer();
-            server.Handler = async context =>
-            {
-                started.Set();
-                await Task.Run(() => release.Wait(TimeSpan.FromSeconds(5)));
-                await WriteText(context, 200, """{"response":"late"}""");
-            };
-
-            SettingsService.Update(settings => settings.LocalAiEndpoint = server.BaseUrl);
-
-            using var cancel = new CancellationTokenSource();
-            var task = PromptService.RunAsync("hello", cancel.Token);
-            AssertTrue(started.Wait(TimeSpan.FromSeconds(5)), "server saw the request");
-            cancel.Cancel();
-
-            var result = await task;
-            Equal(PromptState.Cancelled, result.State, "cancelled state");
-            release.Set();
-        });
-
-        Register("prompt service uses Groq when a key is saved", async () =>
-        {
-            string? authorization = null;
-            string? userAgent = null;
-            var body = string.Empty;
-
-            using var server = new TestServer();
-            server.Handler = async context =>
-            {
-                authorization = context.Request.Headers["Authorization"];
-                userAgent = context.Request.Headers["User-Agent"];
-                using (var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
-                {
-                    body = await reader.ReadToEndAsync();
-                }
-
-                var path = context.Request.Url?.AbsolutePath ?? "/";
-                switch (path)
-                {
-                    case "/unauthorized":
-                        await WriteText(context, 401, "{}");
-                        break;
-                    case "/rate":
-                        await WriteText(context, 429, "{}");
-                        break;
-                    case "/unexpected":
-                        await WriteText(context, 200, """{"choices":[]}""");
-                        break;
-                    default:
-                        await WriteText(context, 200, """{"choices":[{"message":{"content":"  Groq says hi  "}}]}""");
-                        break;
-                }
-            };
-
-            SettingsService.Reset();
-            SettingsService.Update(settings =>
-            {
-                settings.GroqEnabled = true;
-                settings.GroqModel = "test-model";
-                settings.GroqApiKeyProtected = SecretProtection.Protect("gsk_test_key_123456");
-            });
-
-            var previous = PromptService.GroqEndpointOverride;
-            try
-            {
-                PromptService.GroqEndpointOverride = new Uri(server.BaseUrl);
-                var ok = await PromptService.RunAsync("hello groq");
-                Equal(PromptState.Succeeded, ok.State, "success state");
-                Equal("Groq says hi", ok.Text, "parsed answer");
-                Equal("Bearer gsk_test_key_123456", authorization ?? string.Empty, "bearer header");
-                AssertTrue(
-                    (userAgent ?? string.Empty).StartsWith("TolkIsland/", StringComparison.Ordinal),
-                    "user agent");
-
-                using var payload = JsonDocument.Parse(body);
-                Equal("test-model", payload.RootElement.GetProperty("model").GetString() ?? string.Empty, "model");
-                Equal(
-                    "hello groq",
-                    payload.RootElement.GetProperty("messages")[0].GetProperty("content").GetString() ?? string.Empty,
-                    "prompt");
-                AssertTrue(!payload.RootElement.GetProperty("stream").GetBoolean(), "stream is false");
-
-                PromptService.GroqEndpointOverride = new Uri(server.BaseUrl + "unauthorized");
-                var rejected = await PromptService.RunAsync("hello");
-                Equal(PromptState.Failed, rejected.State, "401 state");
-                AssertTrue(rejected.Text.Contains("rejected", StringComparison.OrdinalIgnoreCase), "401 copy");
-
-                PromptService.GroqEndpointOverride = new Uri(server.BaseUrl + "rate");
-                var limited = await PromptService.RunAsync("hello");
-                Equal(PromptState.Failed, limited.State, "429 state");
-                AssertTrue(limited.Text.Contains("rate", StringComparison.OrdinalIgnoreCase), "429 copy");
-
-                PromptService.GroqEndpointOverride = new Uri(server.BaseUrl + "unexpected");
-                var shape = await PromptService.RunAsync("hello");
-                Equal(PromptState.Failed, shape.State, "unexpected shape state");
-                AssertTrue(shape.Text.Contains("unexpected", StringComparison.OrdinalIgnoreCase), "shape copy");
-            }
-            finally
-            {
-                PromptService.GroqEndpointOverride = previous;
-                SettingsService.Reset();
-            }
-        });
-
-        Register("prompt service explains a missing or unreadable Groq key", async () =>
-        {
-            SettingsService.Reset();
-            try
-            {
-                SettingsService.Update(settings =>
-                {
-                    settings.GroqEnabled = true;
-                    settings.GroqApiKeyProtected = string.Empty;
-                });
-
-                var missing = await PromptService.RunAsync("hello");
-                Equal(PromptState.Failed, missing.State, "missing key state");
-                AssertTrue(missing.Text.Contains("Groq API key", StringComparison.OrdinalIgnoreCase), "missing key copy");
-
-                SettingsService.Update(settings => settings.GroqApiKeyProtected = "not-base64");
-                var unreadable = await PromptService.RunAsync("hello");
-                Equal(PromptState.Failed, unreadable.State, "unreadable key state");
-                AssertTrue(
-                    unreadable.Text.Contains("cannot be read", StringComparison.OrdinalIgnoreCase),
-                    "unreadable key copy");
-            }
-            finally
-            {
-                SettingsService.Reset();
-            }
         });
     }
 
