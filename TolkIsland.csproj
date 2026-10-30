@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.22621</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TolkIsland</AssemblyName>
+    <RootNamespace>TolkIsland</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\tolk-island.ico</ApplicationIcon>
+    <WindowsSdkPackageVersion>10.0.22621.56</WindowsSdkPackageVersion>
+
+    <!-- File and product version. UpdateService compares against this. -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>Tolk Island</Product>
+    <Company>Tolk Island</Company>
+    <Copyright>Copyright © 2026 Tolk Island</Copyright>
+    <Description>A Windows notch overlay for media, notifications and live activities.</Description>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <!-- WFAC010 suggests Application.SetHighDpiMode, which is a WinForms API and
+         does not give WPF PerMonitorV2 awareness. The manifest is the correct
+         mechanism for a WPF app that also uses WinForms tray interop. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <!-- Release is the shipping shape: one self-contained exe. Debug stays fast
+       so `dotnet run` is unchanged. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- Embedded symbols keep line numbers in crash.log without adding a .pdb
+         next to the exe. -->
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\tolk-island.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TolkIsland.Regression" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- demo/ and tests/ carry dev-only projects; keep them out of the app build. -->
+    <Compile Remove="demo\**\*.cs" />
+    <Page Remove="demo\**\*.xaml" />
+    <Compile Remove="tests\**\*.cs" />
+    <Page Remove="tests\**\*.xaml" />
+  </ItemGroup>
+
+</Project>

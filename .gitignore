@@ -1,0 +1,26 @@
+# Build output
+bin/
+obj/
+dist-next/
+dist-next-*/
+publish.log
+publish.err
+
+# Local deployment artifacts (see tools/publish.ps1)
+dist/
+
+# Editor / assistant workspace metadata
+.freebuff/
+.qoder/
+
+# Generated promo renders; the deliverable PNGs live in promo/
+promo/tmp/
+promo/*.zip
+
+# Test and editor detritus
+TestResults/
+.vs/
+*.user
+*.suo
+Thumbs.db
+desktop.ini
