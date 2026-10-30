@@ -4,6 +4,10 @@ A **Windows Dynamic Island** — a pure-black, top-flush overlay that lives at t
 screen, with concave fillets flaring into the top edge and rounded bottom corners. Built as a native
 .NET 8 WPF app.
 
+<p align="center">
+  <img src="demo/screens/dark/02-idle-home.png" width="560" alt="Tolk Island idle home">
+</p>
+
 **No fake data.** Everything on the island is real:
 
 | State | Data source |
@@ -34,6 +38,15 @@ screen, with concave fillets flaring into the top edge and rounded bottom corner
 - **Ask** — a prompt box that answers through a local Ollama-compatible model or Groq (with your own API key), or copies the prompt when neither is set
 - **Mirror** — an opt-in front-camera preview: the island springs open into a wide card, the shutter lifts to the live, horizontally flipped image, and the camera stops the moment the panel closes or the island hides
 - **Live activity** — a short card for a download in progress or a finished download. It never cuts off a notification
+
+## Screens
+
+| Idle home | Now playing | Mirror |
+| --- | --- | --- |
+| <img src="demo/screens/dark/02b-idle-home-mirror.png" width="320" alt="Idle home with the opt-in mirror tile"> | <img src="demo/screens/dark/03-player.png" width="320" alt="Now playing player"> | <img src="demo/screens/dark/18-mirror.png" width="320" alt="Mirror camera panel"> |
+| <img src="demo/screens/light/02-idle-home.png" width="320" alt="Idle home in the light theme"> | <img src="demo/screens/dark/15-calendar.png" width="320" alt="Next calendar event"> | <img src="demo/screens/dark/16-prompt.png" width="320" alt="Ask panel"> |
+
+The full state set, including empty, denied and permission states, lives in [demo/screens](demo/screens).
 
 ## Behavior
 
