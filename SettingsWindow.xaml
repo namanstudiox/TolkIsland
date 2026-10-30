@@ -1,0 +1,1853 @@
+﻿<Window x:Class="TolkIsland.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tolk Island settings"
+        Width="960" Height="740" MinWidth="600" MinHeight="320"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResize" WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True"
+        Foreground="#FFF4F4F6"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        FontSize="13"
+        Icon="Assets/tolk-island.ico"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown"
+        SizeChanged="Window_SizeChanged">
+
+    <Window.Resources>
+        <FontFamily x:Key="UiDisplay">Segoe UI Variable Display, Segoe UI</FontFamily>
+
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#FFF4F4F6"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#FFA2A2AB"/>
+        <SolidColorBrush x:Key="TertiaryBrush" Color="#FF8A8A93"/>
+        <SolidColorBrush x:Key="NavBrush" Color="#FF9B9BA4"/>
+
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF0A84FF"/>
+        <SolidColorBrush x:Key="AccentBorderBrush" Color="#660A84FF"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FFFF8A80"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#FF7EE2A0"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#73FFFFFF"/>
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#8CFFFFFF"/>
+        <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#A6FFFFFF"/>
+
+        <!-- Semantic chrome roles. Normal values match the dark glass skin; the
+             window swaps every one for the system palette while Windows high
+             contrast is on. -->
+        <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#0EFFFFFF"/>
+        <SolidColorBrush x:Key="InputHoverBrush" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="InputBorderBrush" Color="#12FFFFFF"/>
+        <SolidColorBrush x:Key="InputCaretBrush" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="SecondaryInkBrush" Color="#FFEDEDF0"/>
+        <SolidColorBrush x:Key="SecondaryHoverBrush" Color="#1AFFFFFF"/>
+        <SolidColorBrush x:Key="SecondaryPressedBrush" Color="#24FFFFFF"/>
+        <SolidColorBrush x:Key="PrimaryActionSurfaceBrush" Color="#FFF6F6F8"/>
+        <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#FFE0E0E6"/>
+        <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#FFC8C8CF"/>
+        <SolidColorBrush x:Key="PrimaryActionInkBrush" Color="#FF0B0B0D"/>
+        <SolidColorBrush x:Key="IconButtonInkBrush" Color="#FF9A9AA2"/>
+        <SolidColorBrush x:Key="IconButtonHoverBrush" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="IconButtonHoverInkBrush" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="IconButtonPressedBrush" Color="#20FFFFFF"/>
+        <SolidColorBrush x:Key="CloseHoverSurfaceBrush" Color="#2BFF453A"/>
+        <SolidColorBrush x:Key="CloseHoverInkBrush" Color="#FFFFB4AE"/>
+        <SolidColorBrush x:Key="ClosePressedSurfaceBrush" Color="#3DFF453A"/>
+        <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#1FFF453A"/>
+        <SolidColorBrush x:Key="DangerHoverSurfaceBrush" Color="#2BFF453A"/>
+        <SolidColorBrush x:Key="DangerPressedSurfaceBrush" Color="#36FF453A"/>
+        <SolidColorBrush x:Key="GhostSurfaceBrush" Color="#E6121216"/>
+        <SolidColorBrush x:Key="GhostBorderBrush" Color="#1FFFFFFF"/>
+        <SolidColorBrush x:Key="GhostInkBrush" Color="#C8FFFFFF"/>
+        <SolidColorBrush x:Key="GhostHoverSurfaceBrush" Color="#F21C1C22"/>
+        <SolidColorBrush x:Key="GhostHoverBorderBrush" Color="#3AFFFFFF"/>
+        <SolidColorBrush x:Key="GhostPressedSurfaceBrush" Color="#FF26262C"/>
+        <SolidColorBrush x:Key="ToggleTrackBrush" Color="#FF2C2C31"/>
+        <SolidColorBrush x:Key="ToggleKnobBrush" Color="#FFF6F6F8"/>
+        <SolidColorBrush x:Key="ToggleFocusSurfaceBrush" Color="#0AFFFFFF"/>
+        <SolidColorBrush x:Key="SliderTrackBrush" Color="#1FFFFFFF"/>
+        <SolidColorBrush x:Key="SliderThumbBrush" Color="#FFF6F6F8"/>
+        <SolidColorBrush x:Key="NavHoverSurfaceBrush" Color="#0BFFFFFF"/>
+        <SolidColorBrush x:Key="NavSelectedSurfaceBrush" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="NavHoverInkBrush" Color="#FFE2E2E6"/>
+        <SolidColorBrush x:Key="NavSelectedInkBrush" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="RailSurfaceBrush" Color="#05FFFFFF"/>
+        <SolidColorBrush x:Key="RailDividerBrush" Color="#0CFFFFFF"/>
+        <SolidColorBrush x:Key="RailLogoSurfaceBrush" Color="#12FFFFFF"/>
+        <SolidColorBrush x:Key="RailFooterSurfaceBrush" Color="#0AFFFFFF"/>
+        <SolidColorBrush x:Key="RailFooterBorderBrush" Color="#12FFFFFF"/>
+        <SolidColorBrush x:Key="FooterBorderBrush" Color="#0DFFFFFF"/>
+        <SolidColorBrush x:Key="ComboHoverSurfaceBrush" Color="#16FFFFFF"/>
+        <SolidColorBrush x:Key="ComboOpenSurfaceBrush" Color="#18FFFFFF"/>
+        <SolidColorBrush x:Key="ComboChevronBrush" Color="#FF9B9BA3"/>
+        <SolidColorBrush x:Key="ComboPopupSurfaceBrush" Color="#FF19191E"/>
+        <SolidColorBrush x:Key="ComboItemInkBrush" Color="#FFEDEDF0"/>
+        <SolidColorBrush x:Key="ComboItemHoverSurfaceBrush" Color="#1AFFFFFF"/>
+        <SolidColorBrush x:Key="ComboItemSelectedSurfaceBrush" Color="#1CFFFFFF"/>
+        <SolidColorBrush x:Key="DialogOverlayBrush" Color="#D208080A"/>
+        <SolidColorBrush x:Key="DialogSurfaceBrush" Color="#FF15151A"/>
+        <SolidColorBrush x:Key="DialogBorderBrush" Color="#1AFFFFFF"/>
+        <LinearGradientBrush x:Key="ShellSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FF101014" Offset="0.0"/>
+            <GradientStop Color="#FF0A0A0D" Offset="0.55"/>
+            <GradientStop Color="#FF070709" Offset="1.0"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="FooterSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#0008080A" Offset="0.0"/>
+            <GradientStop Color="#EE08080A" Offset="0.42"/>
+            <GradientStop Color="#FF08080A" Offset="1.0"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="ContentFadeSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#0008080A" Offset="0.0"/>
+            <GradientStop Color="#A608080A" Offset="0.55"/>
+            <GradientStop Color="#FF08080A" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="FocusRing">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border Margin="-3" CornerRadius="13" BorderThickness="2"
+                                BorderBrush="{DynamicResource PrimaryBrush}"
+                                SnapsToDevicePixels="True"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <LinearGradientBrush x:Key="CardBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#0EFFFFFF" Offset="0.0"/>
+            <GradientStop Color="#07FFFFFF" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource UiDisplay}"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
+        <Style x:Key="SectionHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="18"/>
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        </Style>
+
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
+        <Style x:Key="CardHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="17"/>
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        </Style>
+
+        <Style x:Key="RowTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="RowHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="16"/>
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,16,0,7"/>
+        </Style>
+
+        <Style x:Key="ValueText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="ValuePill" TargetType="Border">
+            <Setter Property="Background" Value="#0CFFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="9,4"/>
+            <Setter Property="MinWidth" Value="56"/>
+        </Style>
+
+        <Style x:Key="Pill" TargetType="Border">
+            <Setter Property="Background" Value="#0AFFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="9,4"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+
+        <Style x:Key="PillText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TertiaryBrush}"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Padding" Value="22,20"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <Style x:Key="ScrollThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="Bar" Background="{DynamicResource ScrollThumbBrush}"
+                                CornerRadius="4" Margin="1,2"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bar" Property="Background" Value="{DynamicResource ScrollThumbHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="Bar" Property="Background" Value="{DynamicResource ScrollThumbDragBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="MinWidth" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False" Opacity="0">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollThumb}" MinHeight="34"/>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False" Opacity="0">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TabScroll" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Padding" Value="0,0,10,44"/>
+            <Setter Property="PanningMode" Value="VerticalOnly"/>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryInkBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-3" CornerRadius="14" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="11"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SecondaryHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SecondaryPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SecondaryHoverBrush}"/>
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource PrimaryActionSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryActionInkBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="22,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-3" CornerRadius="14" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="11"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryActionHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryActionPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MoreGhostButton" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{DynamicResource GhostSurfaceBrush}"
+                                BorderBrush="{DynamicResource GhostBorderBrush}"
+                                BorderThickness="1" CornerRadius="10">
+                            <TextBlock Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Foreground="{DynamicResource GhostInkBrush}" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GhostHoverSurfaceBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GhostHoverBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GhostPressedSurfaceBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource DangerSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-3" CornerRadius="14" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="11"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource DangerHoverSurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource DangerPressedSurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="WindowButton" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource IconButtonInkBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-2" CornerRadius="22" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="20">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource IconButtonHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource IconButtonHoverInkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource IconButtonPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="WindowCloseButton" TargetType="Button" BasedOn="{StaticResource WindowButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-2" CornerRadius="22" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="20">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CloseHoverSurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource CloseHoverInkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ClosePressedSurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="-2,-1" CornerRadius="12" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Row" Background="Transparent" CornerRadius="10" Padding="0,7">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter VerticalAlignment="Center" Margin="0,0,20,0"
+                                                      RecognizesAccessKey="True"/>
+                                    <Grid Grid.Column="1" Width="42" Height="24" VerticalAlignment="Center">
+                                        <Border x:Name="Track" CornerRadius="12" Background="{DynamicResource ToggleTrackBrush}"/>
+                                        <Border x:Name="Knob" Width="18" Height="18" CornerRadius="9"
+                                                Background="{DynamicResource ToggleKnobBrush}" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.35"
+                                                                  Color="#FF000000"/>
+                                            </Border.Effect>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Knob" Property="Margin" Value="21,0,3,0"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource ToggleFocusSurfaceBrush}"/>
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource ComboItemInkBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="11,9" Margin="0,1">
+                            <Grid>
+                                <Rectangle x:Name="Mark" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                                           Fill="{DynamicResource AccentBrush}" HorizontalAlignment="Left"
+                                           VerticalAlignment="Center" Opacity="0"/>
+                                <ContentPresenter Margin="7,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ComboItemHoverSurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ComboItemSelectedSurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavSelectedInkBrush}"/>
+                                <Setter TargetName="Mark" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ComboItemHoverSurfaceBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="DropToggle" Focusable="False" ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                                CornerRadius="10"
+                                                BorderBrush="{DynamicResource InputBorderBrush}"
+                                                BorderThickness="1"/>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ComboHoverSurfaceBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ComboOpenSurfaceBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                              Margin="14,0,38,0" VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"/>
+                            <TextBlock Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Foreground="{DynamicResource ComboChevronBrush}" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" Margin="0,0,14,0" IsHitTestVisible="False"/>
+                            <Border x:Name="FocusBox" CornerRadius="13" BorderThickness="2"
+                                    BorderBrush="Transparent" Margin="-3" IsHitTestVisible="False"/>
+                            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource ComboPopupSurfaceBrush}"
+                                        BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
+                                        CornerRadius="12" Padding="6"
+                                        Margin="0,6,0,0" MinWidth="{TemplateBinding ActualWidth}"
+                                        MaxHeight="320">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.5"
+                                                          Color="#FF000000"/>
+                                    </Border.Effect>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="FocusBox" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource InputCaretBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBorderBrush}"/>
+            <Setter Property="SelectionOpacity" Value="0.75"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource InputHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource InputHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="PasswordBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          VerticalScrollBarVisibility="Disabled"
+                                          HorizontalScrollBarVisibility="Disabled"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource InputHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource InputHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid>
+                            <Ellipse x:Name="Halo" Width="32" Height="32" Opacity="0"
+                                     Fill="{DynamicResource AccentBorderBrush}"/>
+                            <Ellipse Fill="{DynamicResource AccentBorderBrush}"/>
+                            <Ellipse Width="12" Height="12" Fill="{DynamicResource SliderThumbBrush}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Halo" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="Halo" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Slider">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Background="Transparent">
+                            <Border x:Name="Ring" Margin="-3,0" CornerRadius="8" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border Height="4" CornerRadius="2" Background="{DynamicResource SliderTrackBrush}"
+                                    VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="2"
+                                                        Height="4" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumb}"/>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent" Height="4"
+                                                        VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SettingsTab" TargetType="TabItem">
+            <Setter Property="Foreground" Value="{DynamicResource NavBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="ToolTip" Value="{Binding Header, RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid>
+                            <Border x:Name="Ring" Margin="6,0" CornerRadius="13" BorderThickness="2"
+                                    BorderBrush="{DynamicResource PrimaryBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Border x:Name="Nav" Height="42" Margin="8,2" CornerRadius="11"
+                                    Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition x:Name="GlyphColumn" Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle x:Name="Bar" Width="3" Height="18" RadiusX="1.5" RadiusY="1.5"
+                                               Fill="{DynamicResource AccentBrush}" Opacity="0"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                               FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                               Foreground="{TemplateBinding Foreground}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               IsHitTestVisible="False"/>
+                                    <ContentPresenter x:Name="HeaderText" Grid.Column="2" ContentSource="Header"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                      TextElement.FontWeight="Medium"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Nav" Property="Background" Value="{DynamicResource NavHoverSurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavHoverInkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Nav" Property="Background" Value="{DynamicResource NavHoverSurfaceBrush}"/>
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavHoverInkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Nav" Property="Background" Value="{DynamicResource NavSelectedSurfaceBrush}"/>
+                                <Setter TargetName="Bar" Property="Opacity" Value="1"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavSelectedInkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SettingsTabControl" TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="RailColumn" Width="246"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Grid.Column="0">
+                                <Border Background="{DynamicResource RailSurfaceBrush}" CornerRadius="26,0,0,26" IsHitTestVisible="False"/>
+                                <Border Width="1" HorizontalAlignment="Right" Background="{DynamicResource RailDividerBrush}"
+                                        IsHitTestVisible="False"/>
+                                <Grid x:Name="RailInner" Margin="16,66,16,22">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Border x:Name="RailLogo" Width="42" Height="42" CornerRadius="13"
+                                            Background="{DynamicResource RailLogoSurfaceBrush}" HorizontalAlignment="Left" Margin="10,0,0,0">
+                                        <Image Source="{StaticResource TolkLogoMark}" Margin="6"/>
+                                    </Border>
+                                    <ScrollViewer x:Name="RailScroll" Grid.Row="1" Margin="0,34,0,0"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  Focusable="False">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                    <Border x:Name="PrivacyBadge" Grid.Row="2" HorizontalAlignment="Left"
+                                            Background="{DynamicResource RailFooterSurfaceBrush}"
+                                            BorderBrush="{DynamicResource RailFooterBorderBrush}" BorderThickness="1"
+                                            CornerRadius="9" Padding="9,6" Margin="10,0,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="PrivacyBadgeGlyph" Text="&#xE72E;"
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                       Foreground="{DynamicResource SecondaryBrush}"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="PrivacyBadgeText" Text="On-device only" FontSize="12"
+                                                       Foreground="{DynamicResource SecondaryBrush}"
+                                                       Margin="7,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+
+                            <Grid Grid.Column="1">
+                                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"
+                                                  Margin="34,54,30,86"/>
+                                <Border x:Name="ContentFade" Height="36" VerticalAlignment="Bottom"
+                                        Margin="34,0,30,86" IsHitTestVisible="False"
+                                        Background="{DynamicResource ContentFadeSurfaceBrush}"/>
+                                <Button x:Name="MoreHint" Visibility="Collapsed"
+                                        Style="{StaticResource MoreGhostButton}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                        Margin="0,0,0,90"
+                                        AutomationProperties.Name="Scroll down for more settings"
+                                        ToolTip="More settings below"/>
+                            </Grid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Border x:Name="WindowShell" CornerRadius="26">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.55" Color="#FF000000"/>
+            </Border.Effect>
+            <Grid>
+                <Border CornerRadius="26" Background="{DynamicResource ShellSurfaceBrush}"/>
+
+                <Border x:Name="AmbientGlow" CornerRadius="26" IsHitTestVisible="False">
+                    <Border.Background>
+                        <RadialGradientBrush Center="0.82,0.04" GradientOrigin="0.82,0.04"
+                                             RadiusX="0.75" RadiusY="0.6">
+                            <GradientStop Color="#240A84FF" Offset="0.0"/>
+                            <GradientStop Color="#0C0A84FF" Offset="0.35"/>
+                            <GradientStop Color="#00000000" Offset="1.0"/>
+                        </RadialGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <TabControl x:Name="SettingsTabs" Style="{StaticResource SettingsTabControl}"
+                            ItemContainerStyle="{StaticResource SettingsTab}"
+                            SelectedIndex="0" Background="Transparent" BorderThickness="0">
+                    <TabControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </TabControl.ItemsPanel>
+
+                    <TabItem Header="General" Tag="&#xE713;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="General" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="Quiet defaults and a shortcut that feels native."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Startup and presence" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,10"
+                                                   Text="Decide how the island greets you, and when it steps back."/>
+
+                                        <CheckBox x:Name="StartWithWindowsCheck"
+                                                  AutomationProperties.Name="Start Tolk Island with Windows">
+                                            <StackPanel>
+                                                <TextBlock Text="Start with Windows" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Launch quietly in the tray when you sign in."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <CheckBox x:Name="IdleHideCheck"
+                                                  AutomationProperties.Name="Hide the island when idle">
+                                            <StackPanel>
+                                                <TextBlock Text="Retract when idle" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Collapse to the thin tab when nothing needs you."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <CheckBox x:Name="QuietCheck"
+                                                  AutomationProperties.Name="Quiet notification cards">
+                                            <StackPanel>
+                                                <TextBlock Text="Quiet mode" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Hold notification cards until quiet mode is switched off."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Shortcut" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,4"
+                                                   Text="One key to pull the island down from the notch."/>
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Global hotkey" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Press once to open and pin, again to close."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                            <ComboBox x:Name="HotkeyCombo" Grid.Column="1" Width="228"
+                                                      VerticalAlignment="Center"
+                                                      AutomationProperties.Name="Global hotkey">
+                                                <ComboBoxItem Content="Ctrl + Alt + I"/>
+                                                <ComboBoxItem Content="Ctrl + Shift + Space"/>
+                                                <ComboBoxItem Content="Alt + Shift + I"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Placement" Tag="&#xE707;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Placement" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="Pixel-tune the island to the screen it lives on."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Display" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="Choose which monitor owns the notch."/>
+
+                                        <TextBlock Text="Monitor behaviour" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="MonitorModeCombo"
+                                                  SelectionChanged="MonitorMode_SelectionChanged"
+                                                  AutomationProperties.Name="Monitor placement">
+                                            <ComboBoxItem Content="Primary monitor"/>
+                                            <ComboBoxItem Content="Monitor with the active window"/>
+                                            <ComboBoxItem Content="A specific monitor"/>
+                                            <ComboBoxItem Content="Every monitor"/>
+                                        </ComboBox>
+
+                                        <TextBlock Text="Specific monitor" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="MonitorCombo"
+                                                  AutomationProperties.Name="Specific monitor"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Position and geometry" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="Sit flush with the edge, or float just below it."/>
+
+                                        <TextBlock Text="Anchor" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="PositionCombo"
+                                                  SelectionChanged="Position_SelectionChanged"
+                                                  AutomationProperties.Name="Island position">
+                                            <ComboBoxItem Content="Top centre, flush with the edge"/>
+                                            <ComboBoxItem Content="Top centre with an offset"/>
+                                            <ComboBoxItem Content="Floating pill below the edge"/>
+                                        </ComboBox>
+
+                                        <Grid Margin="0,16,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Horizontal offset" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="HorizontalOffsetText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="HorizontalOffsetSlider" Minimum="-800" Maximum="800"
+                                                TickFrequency="10" ValueChanged="HorizontalOffset_Changed"
+                                                AutomationProperties.Name="Horizontal offset"/>
+
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Top offset" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="TopOffsetText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="TopOffsetSlider" Minimum="0" Maximum="300"
+                                                TickFrequency="4" ValueChanged="TopOffset_Changed"
+                                                AutomationProperties.Name="Top offset"/>
+                                        <TextBlock x:Name="TopOffsetHint" Style="{StaticResource CardHint}"
+                                                   Margin="0,4,0,0" Visibility="Collapsed"
+                                                   Text="Available with the offset and floating anchors."/>
+
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Size" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="ScaleText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="ScaleSlider" Minimum="0.85" Maximum="1.25"
+                                                TickFrequency="0.05" ValueChanged="Scale_Changed"
+                                                AutomationProperties.Name="Island size"/>
+
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Bottom corner radius" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="CornerText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="CornerSlider" Minimum="0" Maximum="40"
+                                                TickFrequency="1" ValueChanged="Corner_Changed"
+                                                AutomationProperties.Name="Corner radius"/>
+
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,12,0,0"
+                                                   Text="Every change previews on the island immediately. Apply keeps it."/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Appearance" Tag="&#xE790;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="A quiet surface, soft motion, and one colour that does the talking."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Island preview" Style="{StaticResource CardTitle}"/>
+                                        <Border Height="112" CornerRadius="18" Background="#0AFFFFFF"
+                                                Margin="0,14,0,0" ClipToBounds="True">
+                                            <Grid>
+                                                <Border Width="360" Height="92" CornerRadius="46"
+                                                        Background="#08FFFFFF"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border x:Name="PreviewIsland" Width="300" Height="66"
+                                                        CornerRadius="30" Background="#FF000000"
+                                                        BorderBrush="#00000000" BorderThickness="1"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        IsHitTestVisible="False">
+                                                    <Border.LayoutTransform>
+                                                        <ScaleTransform x:Name="PreviewScale" ScaleX="1" ScaleY="1"
+                                                                        CenterX="150" CenterY="33"/>
+                                                    </Border.LayoutTransform>
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="18" ShadowDepth="6"
+                                                                          Direction="270" Opacity="0.28"
+                                                                          Color="#FF000000"
+                                                                          RenderingBias="Performance"/>
+                                                    </Border.Effect>
+                                                    <Grid>
+                                                        <Path x:Name="PreviewWeb" Stretch="None"
+                                                              StrokeThickness="1" IsHitTestVisible="False"
+                                                              Visibility="Collapsed"/>
+                                                        <Grid Margin="24,0">
+                                                        <TextBlock x:Name="PreviewClock" Text="9:41"
+                                                                   FontFamily="{StaticResource UiDisplay}"
+                                                                   FontSize="26" FontWeight="Bold"
+                                                                   Foreground="#FFFFFFFF"
+                                                                   VerticalAlignment="Center"/>
+                                                        <StackPanel x:Name="PreviewWave" Orientation="Horizontal"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center">
+                                                            <Border Width="3" Height="8" CornerRadius="1.5"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                            <Border Width="3" Height="16" CornerRadius="1.5" Margin="4,0,0,0"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                            <Border Width="3" Height="24" CornerRadius="1.5" Margin="4,0,0,0"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                            <Border Width="3" Height="13" CornerRadius="1.5" Margin="4,0,0,0"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                            <Border Width="3" Height="20" CornerRadius="1.5" Margin="4,0,0,0"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                            <Border Width="3" Height="11" CornerRadius="1.5" Margin="4,0,0,0"
+                                                                    Background="{DynamicResource AccentBrush}"/>
+                                                        </StackPanel>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock x:Name="PreviewCaption" Style="{StaticResource CardHint}"
+                                                   Margin="0,12,0,0"
+                                                   Text="Surface, accent, size and corner radius update here as you change them."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Theme" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="Pick a surface and the colour that moves with it."/>
+
+                                        <TextBlock Text="Surface" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="ThemeCombo" Width="260" HorizontalAlignment="Left"
+                                                  AutomationProperties.Name="Theme">
+                                            <ComboBoxItem Content="Dark"/>
+                                            <ComboBoxItem Content="Light"/>
+                                            <ComboBoxItem Content="Follow Windows"/>
+                                        </ComboBox>
+
+                                        <TextBlock Text="Accent" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="AccentCombo" Width="260" HorizontalAlignment="Left"
+                                                  AutomationProperties.Name="Accent colour">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="10" Height="10" Fill="{Binding Tag}"
+                                                                 VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Content}" Margin="9,0,0,0"
+                                                                   VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                            <ComboBoxItem Content="Island blue" Tag="#FF0A84FF"/>
+                                            <ComboBoxItem Content="Violet" Tag="#FF8B5CF6"/>
+                                            <ComboBoxItem Content="Coral" Tag="#FFFF6B6B"/>
+                                            <ComboBoxItem Content="Mint" Tag="#FF30D158"/>
+                                            <ComboBoxItem Content="Amber" Tag="#FFFFB340"/>
+                                        </ComboBox>
+
+                                        <TextBlock Text="Skin" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="SkinCombo" Width="260" HorizontalAlignment="Left"
+                                                  AutomationProperties.Name="Island skin">
+                                            <ComboBoxItem Content="Classic"/>
+                                            <ComboBoxItem Content="Spider"/>
+                                        </ComboBox>
+                                        <TextBlock x:Name="SkinHint" Style="{StaticResource RowHint}"
+                                                   Margin="0,6,0,0" TextWrapping="Wrap"
+                                                   Text="Scarlet and cobalt with a fine web canopy, and a small masked spider who hangs below the island. The accent follows the suit palette."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Comfort" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,10"
+                                                   Text="Keep the island legible and calm."/>
+
+                                        <CheckBox x:Name="HighContrastCheck"
+                                                  AutomationProperties.Name="High contrast mode">
+                                            <StackPanel>
+                                                <TextBlock Text="High-contrast mode" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Stronger separation for text and chips."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <CheckBox x:Name="ReducedMotionCheck"
+                                                  AutomationProperties.Name="Reduce motion">
+                                            <StackPanel>
+                                                <TextBlock Text="Reduce motion" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Shorter morphs and a still waveform."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Activities" Tag="&#xE945;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Activities" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="Choose what is allowed to open the island."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Live activities" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,6"
+                                                   Text="Momentary cards for things happening right now."/>
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="32"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <CheckBox x:Name="MediaCheck" Content="Now playing"
+                                                      AutomationProperties.Name="Show media activity"/>
+                                            <CheckBox x:Name="FocusCheck" Grid.Column="2" Content="Focus timer"
+                                                      AutomationProperties.Name="Show focus timer"/>
+                                            <CheckBox x:Name="NotificationsCheck" Grid.Row="1" Content="Notification peeks"
+                                                      AutomationProperties.Name="Show notification peeks"/>
+                                            <CheckBox x:Name="ChargingCheck" Grid.Row="1" Grid.Column="2" Content="Charging cards"
+                                                      AutomationProperties.Name="Show charging cards"/>
+                                            <CheckBox x:Name="VolumeCheck" Grid.Row="2" Content="Volume HUD"
+                                                      AutomationProperties.Name="Show volume HUD"/>
+                                            <CheckBox x:Name="BrightnessCheck" Grid.Row="2" Grid.Column="2" Content="Brightness HUD"
+                                                      AutomationProperties.Name="Show brightness HUD"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Island panels" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,6"
+                                                   Text="Surfaces you can pull down by hand."/>
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="32"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <CheckBox x:Name="ShelfCheck" Content="File shelf"
+                                                      AutomationProperties.Name="Enable file shelf"/>
+                                            <CheckBox x:Name="CalendarCheck" Grid.Column="2" Content="Calendar"
+                                                      AutomationProperties.Name="Enable calendar panel"/>
+                                            <CheckBox x:Name="DownloadsCheck" Grid.Row="1" Content="Downloads"
+                                                      AutomationProperties.Name="Enable download activities"/>
+                                            <CheckBox x:Name="PromptCheck" Grid.Row="1" Grid.Column="2" Content="Quick prompt"
+                                                      AutomationProperties.Name="Enable quick prompt"/>
+                                            <CheckBox x:Name="ReplyCheck" Grid.Row="2" Content="Reply entry"
+                                                      AutomationProperties.Name="Enable notification reply entry"/>
+                                            <CheckBox x:Name="SwipeCheck" Grid.Row="2" Grid.Column="2" Content="Shift + wheel"
+                                                      AutomationProperties.Name="Enable activity gesture"/>
+                                            <CheckBox x:Name="MirrorCheck" Grid.Row="3" Grid.ColumnSpan="3"
+                                                      Margin="0,10,0,0"
+                                                      AutomationProperties.Name="Enable mirror camera">
+                                                <StackPanel>
+                                                    <TextBlock Text="Mirror camera" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Front-camera preview. Preview only; capture stops when the panel closes."
+                                                               Style="{StaticResource RowHint}"/>
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </Grid>
+                                        <CheckBox x:Name="MediaFirstCheck" Margin="0,8,0,0"
+                                                  AutomationProperties.Name="Prefer media activity">
+                                            <StackPanel>
+                                                <TextBlock Text="Prefer media over focus" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="When both are active, keep showing what is playing."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Notification rules" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="One app name per line. Blocked apps never open a card; priority apps keep their card twice as long."/>
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="Blocked apps" Style="{StaticResource RowTitle}"/>
+                                                <TextBox x:Name="BlockedAppsBox" Height="112" Margin="0,8,0,0"
+                                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                                         VerticalScrollBarVisibility="Auto"
+                                                         AutomationProperties.Name="Blocked notification apps"/>
+                                                <TextBlock Style="{StaticResource RowHint}"
+                                                           Text="For example, discord.exe."/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Priority apps" Style="{StaticResource RowTitle}"/>
+                                                <TextBox x:Name="PriorityAppsBox" Height="112" Margin="0,8,0,0"
+                                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                                         VerticalScrollBarVisibility="Auto"
+                                                         AutomationProperties.Name="Priority notification apps"/>
+                                                <TextBlock Style="{StaticResource RowHint}"
+                                                           Text="For example, slack.exe."/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Advanced" Tag="&#xE710;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Advanced" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="Behaviour, timing, quick launch, local AI and update checks."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Behaviour" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="How the island answers the pointer, and how it feels when it does."/>
+
+                                        <TextBlock Text="Expand with" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="ExpandModeCombo"
+                                                  AutomationProperties.Name="Expand mode">
+                                            <ComboBoxItem Content="Hovering the pointer"/>
+                                            <ComboBoxItem Content="A click"/>
+                                        </ComboBox>
+
+                                        <CheckBox x:Name="SoundsCheck" Margin="0,16,0,0"
+                                                  AutomationProperties.Name="Notification sounds">
+                                            <StackPanel>
+                                                <TextBlock Text="Notification sounds" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="A soft chime when a card appears." Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <CheckBox x:Name="HapticsCheck" Margin="0,12,0,0"
+                                                  AutomationProperties.Name="Haptic feedback">
+                                            <StackPanel>
+                                                <TextBlock Text="Haptic feedback" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="A brief pulse on Precision Touchpads." Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Timing" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,0"
+                                                   Text="How long the island lingers before it lets go."/>
+
+                                        <Grid Margin="0,16,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Notification peek" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="NotificationSecondsText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="NotificationSecondsSlider" Minimum="2" Maximum="30"
+                                                TickFrequency="1" IsSnapToTickEnabled="True"
+                                                ValueChanged="NotificationSeconds_Changed"
+                                                AutomationProperties.Name="Notification peek seconds"/>
+
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Retract when idle" Style="{StaticResource RowTitle}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}">
+                                                <TextBlock x:Name="IdleSecondsText" Style="{StaticResource ValueText}"/>
+                                            </Border>
+                                        </Grid>
+                                        <Slider x:Name="IdleSecondsSlider" Minimum="3" Maximum="120"
+                                                TickFrequency="1" IsSnapToTickEnabled="True"
+                                                ValueChanged="IdleSeconds_Changed"
+                                                AutomationProperties.Name="Idle retract seconds"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Quick launch" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
+                                                   Text="One app, shortcut or document per line, up to eight. The first four appear as two-letter buttons in the expanded island."/>
+                                        <TextBox x:Name="QuickLaunchBox" Height="88" AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 AutomationProperties.Name="Quick launch apps"/>
+                                        <TextBlock Style="{StaticResource RowHint}"
+                                                   Text="For example, C:\Program Files\Spotify\Spotify.exe."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Local AI" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
+                                                   Text="The prompt panel can answer through a model running on this PC or your own network. Nothing leaves the machine unless you point it at another host."/>
+                                        <TextBlock Text="Endpoint" Style="{StaticResource FieldLabel}"
+                                                   Margin="0,8,0,0"/>
+                                        <TextBox x:Name="LocalAiEndpointBox"
+                                                 AutomationProperties.Name="Local AI endpoint"
+                                                 ToolTip="http://127.0.0.1:11434"/>
+                                        <TextBlock x:Name="LocalAiError" Style="{StaticResource RowHint}"
+                                                   Foreground="{DynamicResource DangerBrush}"
+                                                   AutomationProperties.LiveSetting="Assertive"
+                                                   Visibility="Collapsed"/>
+                                        <TextBlock Text="Model" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="LocalAiModelBox"
+                                                 AutomationProperties.Name="Local AI model"
+                                                 ToolTip="llama3.2"/>
+                                        <TextBlock Style="{StaticResource RowHint}"
+                                                   Text="Speaks the Ollama chat format. Leave the endpoint empty to copy prompts to the clipboard instead."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Groq (cloud)" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
+                                                   Text="Answer the prompt panel with Groq's hosted models. Prompts leave this PC and go to api.groq.com with the key below."/>
+                                        <CheckBox x:Name="GroqCheck"
+                                                  AutomationProperties.Name="Use Groq for prompts">
+                                            <StackPanel>
+                                                <TextBlock Text="Use Groq for the Ask panel" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Takes priority over the local endpoint."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <TextBlock Text="API key" Style="{StaticResource FieldLabel}"
+                                                   Margin="0,12,0,0"/>
+                                        <PasswordBox x:Name="GroqKeyBox" MaxLength="256"
+                                                     AutomationProperties.Name="Groq API key"
+                                                     ToolTip="Starts with gsk_"/>
+                                        <TextBlock x:Name="GroqKeyError" Style="{StaticResource RowHint}"
+                                                   Foreground="{DynamicResource DangerBrush}"
+                                                   AutomationProperties.LiveSetting="Assertive"
+                                                   Visibility="Collapsed"/>
+                                        <TextBlock x:Name="GroqKeyHint" Style="{StaticResource RowHint}"/>
+                                        <Button x:Name="RemoveGroqKeyButton" Content="Remove saved key"
+                                                HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                IsEnabled="False" Click="RemoveGroqKey_Click"
+                                                AutomationProperties.Name="Remove saved Groq key"/>
+                                        <TextBlock Text="Model" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="GroqModelBox"
+                                                 AutomationProperties.Name="Groq model"
+                                                 ToolTip="llama-3.3-70b-versatile"/>
+                                        <TextBlock Style="{StaticResource RowHint}"
+                                                   Text="The key is encrypted for your Windows account and is only sent to api.groq.com. Create one at console.groq.com/keys."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Updates" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
+                                                   Text="Tolk Island never downloads or installs an update on its own. A check only compares version numbers."/>
+                                        <CheckBox x:Name="UpdateCheckBox"
+                                                  AutomationProperties.Name="Enable update check"
+                                                  Checked="UpdateCheck_Changed" Unchecked="UpdateCheck_Changed">
+                                            <StackPanel>
+                                                <TextBlock Text="Check a release manifest" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Look for a newer version from Settings."
+                                                           Style="{StaticResource RowHint}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                        <TextBlock Text="Manifest URL" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="UpdateUrlBox"
+                                                 AutomationProperties.Name="Update manifest URL"
+                                                 ToolTip="https://example.com/tolk/update.json"/>
+                                        <TextBlock x:Name="UpdateUrlHint" Style="{StaticResource RowHint}"
+                                                   Text="Turn on checks to edit this address."/>
+                                        <TextBlock x:Name="UpdateUrlError" Style="{StaticResource RowHint}"
+                                                   Foreground="{DynamicResource DangerBrush}"
+                                                   AutomationProperties.LiveSetting="Assertive"
+                                                   Visibility="Collapsed"/>
+                                        <Button Content="Check now" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                                Click="CheckForUpdates_Click"
+                                                AutomationProperties.Name="Check for updates now"/>
+                                        <TextBlock x:Name="UpdateCheckStatusText" Style="{StaticResource RowHint}"
+                                                   Margin="0,8,0,0" TextWrapping="Wrap"
+                                                   AutomationProperties.LiveSetting="Polite"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Developer" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,5,0,8"
+                                                   Text="Local scripts talk to the island over loopback. Every route except /health needs the access token, and the API never returns your files, notes or settings."/>
+                                        <TextBlock Text="Base URL" Style="{StaticResource FieldLabel}"
+                                                   Margin="0,8,0,0"/>
+                                        <TextBox x:Name="ApiBaseUrlBox" IsReadOnly="True"
+                                                 AutomationProperties.Name="Local API base URL"/>
+                                        <TextBlock Text="Access token" Style="{StaticResource FieldLabel}"
+                                                   Margin="0,10,0,0"/>
+                                        <TextBox x:Name="ApiTokenBox" IsReadOnly="True"
+                                                 AutomationProperties.Name="Local API access token"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <Button Content="Copy URL" Click="CopyApiUrl_Click"
+                                                    AutomationProperties.Name="Copy API URL"/>
+                                            <Button Content="Copy token" Margin="8,0,0,0"
+                                                    Click="CopyApiToken_Click"
+                                                    AutomationProperties.Name="Copy API access token"/>
+                                            <Button Content="Check API" Margin="8,0,0,0"
+                                                    Click="CheckApi_Click"
+                                                    AutomationProperties.Name="Check API"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="ApiStatusText" Style="{StaticResource RowHint}"
+                                                   Margin="0,8,0,0" TextWrapping="Wrap"
+                                                   AutomationProperties.LiveSetting="Polite"/>
+                                        <TextBlock Style="{StaticResource RowHint}"
+                                                   Text="Send the token in the X-Tolk-Token header. It is saved at %LOCALAPPDATA%\TolkIsland\api-token.txt. Routes and examples live in docs/LOCAL_API.md."/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Data" Tag="&#xE8F1;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Data" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="Everything lives on this PC, in one folder."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Local data" Style="{StaticResource CardTitle}"/>
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Background="#0AFFFFFF" CornerRadius="10" Padding="12,10">
+                                                <TextBlock x:Name="DataPathText" FontFamily="Cascadia Mono, Consolas"
+                                                           FontSize="12" Foreground="{DynamicResource SecondaryBrush}"
+                                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Button Grid.Column="1" Content="Copy path" Margin="10,0,0,0"
+                                                    VerticalAlignment="Stretch"
+                                                    Click="CopyDataPath_Click"
+                                                    AutomationProperties.Name="Copy data folder path"/>
+                                        </Grid>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,12,0,0"
+                                                   Text="Settings, the file-shelf list and the local log live here. Nothing is synced and there is no account. Deleting this folder resets the app."/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                            <Button x:Name="OpenDataFolderButton" Content="Open data folder"
+                                                    Click="OpenDataFolder_Click"
+                                                    AutomationProperties.Name="Open data folder"/>
+                                            <Button x:Name="ResetButton" Content="Reset all settings"
+                                                    Style="{StaticResource DangerButton}" Margin="10,0,0,0"
+                                                    Click="Reset_Click"
+                                                    AutomationProperties.Name="Reset all settings"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="About Tolk Island" Style="{StaticResource CardTitle}"/>
+                                                <TextBlock x:Name="VersionText" Style="{StaticResource CardHint}"
+                                                           Margin="0,6,0,0" FontSize="12.5"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Width="34" Height="34" CornerRadius="10"
+                                                    Background="#10FFFFFF" VerticalAlignment="Top">
+                                                <Image Source="{StaticResource TolkLogoMark}" Margin="6"/>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,11,0,0"
+                                                   Text="Media, power, notifications and quiet utilities in one surface at the top of your screen."/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                            <Border Style="{StaticResource Pill}">
+                                                <TextBlock Text="No account" Style="{StaticResource PillText}"/>
+                                            </Border>
+                                            <Border Style="{StaticResource Pill}">
+                                                <TextBlock Text="No telemetry" Style="{StaticResource PillText}"/>
+                                            </Border>
+                                            <Border Style="{StaticResource Pill}">
+                                                <TextBlock Text="On-device" Style="{StaticResource PillText}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Licence" Tag="&#xE72E;">
+                        <ScrollViewer Style="{StaticResource TabScroll}">
+                            <StackPanel>
+                                <TextBlock Text="Licence" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Style="{StaticResource SectionHint}" Margin="0,7,0,24"
+                                           Text="One key, checked on this PC. Nothing is sent anywhere."/>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Your plan" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock x:Name="LicenseStatusText" Style="{StaticResource CardHint}"
+                                                   Margin="0,6,0,0" FontSize="13"/>
+                                        <TextBlock Text="Licence key" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="LicenseKeyBox"
+                                                 CharacterCasing="Upper"
+                                                 AutomationProperties.Name="Licence key"
+                                                 ToolTip="TOLK-XXXX-XXXX-XXXX"/>
+                                        <TextBlock x:Name="LicenseKeyHint" Style="{StaticResource RowHint}"
+                                                   Text="Format TOLK-XXXX-XXXX-XXXX. Choose Apply to activate."/>
+                                        <TextBlock x:Name="LicenseErrorText" FontSize="12"
+                                                   Foreground="{DynamicResource DangerBrush}"
+                                                   TextWrapping="Wrap" Margin="0,8,0,0"
+                                                   AutomationProperties.LiveSetting="Assertive"
+                                                   Visibility="Collapsed"/>
+                                        <Button x:Name="RemoveLicenseButton" Content="Remove licence"
+                                                HorizontalAlignment="Left" Margin="0,14,0,0"
+                                                Visibility="Collapsed"
+                                                Click="RemoveLicense_Click"
+                                                AutomationProperties.Name="Remove licence from this PC"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Kept on this PC" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,6,0,0"
+                                                   Text="Your key is stored in the local app data folder and is never uploaded. Removing it turns Pro features off until you add a key again."/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                            <Border Style="{StaticResource Pill}">
+                                                <TextBlock Text="Local check" Style="{StaticResource PillText}"/>
+                                            </Border>
+                                            <Border Style="{StaticResource Pill}">
+                                                <TextBlock Text="No account" Style="{StaticResource PillText}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                </TabControl>
+
+                <Grid x:Name="TitleBar" VerticalAlignment="Top" Height="46" Background="Transparent"
+                      MouseLeftButtonDown="DragArea_MouseLeftButtonDown" Panel.ZIndex="5">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                VerticalAlignment="Center" Margin="0,0,4,0">
+                        <Button Style="{StaticResource WindowButton}" Content="&#xE921;"
+                                Click="Minimize_Click" AutomationProperties.Name="Minimize settings"
+                                ToolTip="Minimize"/>
+                        <Button Style="{StaticResource WindowCloseButton}" Content="&#xE8BB;"
+                                Click="Close_Click" AutomationProperties.Name="Close settings"
+                                ToolTip="Close" Margin="2,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <Border x:Name="Footer" VerticalAlignment="Bottom" Height="86" Margin="246,0,0,0"
+                        CornerRadius="0,0,26,0" Panel.ZIndex="5"
+                        Background="{DynamicResource FooterSurfaceBrush}"
+                        BorderBrush="{DynamicResource FooterBorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="0,0,30,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid x:Name="StatusRow" VerticalAlignment="Center" Margin="34,0,20,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Ellipse x:Name="DirtyDot" Width="6" Height="6" Visibility="Collapsed"
+                                     Fill="{DynamicResource AccentBrush}" Margin="0,0,8,0"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock x:Name="StatusText" Grid.Column="1" VerticalAlignment="Center"
+                                       FontSize="12" Foreground="{DynamicResource TertiaryBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                        </Grid>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click" IsCancel="True"
+                                    AutomationProperties.Name="Cancel settings"/>
+                            <Button x:Name="ApplyButton" Content="Apply"
+                                    Style="{StaticResource PrimaryButton}"
+                                    IsDefault="True"
+                                    Margin="10,0,0,0" Click="Apply_Click"
+                                    AutomationProperties.Name="Apply settings"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- In-window modal. It keeps the glass surface and the keyboard
+                     model intact instead of dropping a stock Windows dialog on top. -->
+                <Border x:Name="DialogOverlay" Visibility="Collapsed" Panel.ZIndex="50"
+                        Background="{DynamicResource DialogOverlayBrush}" CornerRadius="26" Margin="1">
+                    <Border x:Name="DialogCard" Width="440"
+                            Background="{DynamicResource DialogSurfaceBrush}"
+                            BorderBrush="{DynamicResource DialogBorderBrush}" BorderThickness="1"
+                            CornerRadius="18" Padding="24,22"
+                            KeyboardNavigation.TabNavigation="Cycle"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="34" ShadowDepth="10" Direction="270"
+                                              Opacity="0.55" Color="#FF000000"
+                                              RenderingBias="Performance"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock x:Name="DialogTitle" Text=""
+                                       FontFamily="{StaticResource UiDisplay}" FontSize="19"
+                                       FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock x:Name="DialogMessage" Text="" Margin="0,9,0,0"
+                                       FontSize="13" LineHeight="19"
+                                       LineStackingStrategy="BlockLineHeight"
+                                       Foreground="{DynamicResource SecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                        Margin="0,22,0,0">
+                                <Button x:Name="DialogCancelButton" Content="Cancel"
+                                        Click="DialogCancel_Click"/>
+                                <Button x:Name="DialogSecondaryButton" Content="Discard"
+                                        Margin="10,0,0,0" Click="DialogSecondary_Click"/>
+                                <Button x:Name="DialogPrimaryButton" Content="Save changes"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Margin="10,0,0,0" Click="DialogPrimary_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

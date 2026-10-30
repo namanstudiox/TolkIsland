@@ -1,0 +1,35 @@
+<Application x:Class="TolkIsland.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <LinearGradientBrush x:Key="ArtPlaceholder" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF9B6BFF" Offset="0.0"/>
+            <GradientStop Color="#FFFF6FA5" Offset="0.55"/>
+            <GradientStop Color="#FFFFA45B" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <!-- Vector source of the in-app mark. The .ico is a multi-frame file whose
+             first frame is 16 px; binding Image directly to it upscales that frame
+             and blurs the logo at every DPI. -->
+        <DrawingImage x:Key="TolkLogoMark">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FF000000">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,250,153" RadiusX="76.5" RadiusY="76.5"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#FFFFB340">
+                        <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                                <RectangleGeometry Rect="73.5,54,21,45" RadiusX="10.5" RadiusY="10.5"/>
+                                <RectangleGeometry Rect="114.5,32.5,21,88" RadiusX="10.5" RadiusY="10.5"/>
+                                <RectangleGeometry Rect="155.5,44.5,21,64" RadiusX="10.5" RadiusY="10.5"/>
+                            </GeometryGroup>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,244 @@
+<Window x:Class="TolkIsland.TrayMenuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TolkIsland"
+        Title="Tolk Island menu"
+        Width="340" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        WindowStartupLocation="Manual" ShowActivated="True"
+        Opacity="0"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        KeyboardNavigation.TabNavigation="Cycle"
+        Deactivated="Window_Deactivated"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF0A84FF"/>
+        <SolidColorBrush x:Key="ItemForegroundBrush" Color="#FFF2F2F5"/>
+        <SolidColorBrush x:Key="GlyphBrush" Color="#FF8E8E98"/>
+        <SolidColorBrush x:Key="ShadowSurfaceBrush" Color="#FF0C0C10"/>
+        <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#1FFFFFFF"/>
+        <LinearGradientBrush x:Key="TraySurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FF17171C" Offset="0.0"/>
+            <GradientStop Color="#FF101014" Offset="0.55"/>
+            <GradientStop Color="#FF0D0D11" Offset="1.0"/>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="HoverSurfaceBrush" Color="#12FFFFFF"/>
+        <SolidColorBrush x:Key="PressedSurfaceBrush" Color="#1BFFFFFF"/>
+        <SolidColorBrush x:Key="FocusRingBrush" Color="#FFF2F2F5"/>
+        <SolidColorBrush x:Key="KeycapSurfaceBrush" Color="#0FFFFFFF"/>
+        <SolidColorBrush x:Key="KeycapBorderBrush" Color="#18FFFFFF"/>
+        <SolidColorBrush x:Key="KeycapInkBrush" Color="#FF9A9AA4"/>
+        <SolidColorBrush x:Key="DividerBrush" Color="#12FFFFFF"/>
+        <SolidColorBrush x:Key="SwitchTrackBrush" Color="#FF2E2E34"/>
+        <SolidColorBrush x:Key="SwitchTrackBorderBrush" Color="#1AFFFFFF"/>
+        <SolidColorBrush x:Key="SwitchKnobBrush" Color="#FFF7F7FA"/>
+        <SolidColorBrush x:Key="DangerInkBrush" Color="#FFFF8A80"/>
+        <SolidColorBrush x:Key="DangerGlyphBrush" Color="#FFB8736D"/>
+        <SolidColorBrush x:Key="HeaderPlateSurfaceBrush" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="HeaderPlateBorderBrush" Color="#1FFFFFFF"/>
+
+        <Style x:Key="TrayRowButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource ItemForegroundBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinHeight" Value="33"/>
+            <Setter Property="Margin" Value="3,1"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="Bd" CornerRadius="10" Background="Transparent"/>
+                            <Border x:Name="Hover" CornerRadius="10"
+                                    Background="{DynamicResource HoverSurfaceBrush}"
+                                    Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Pressed" CornerRadius="10"
+                                    Background="{DynamicResource PressedSurfaceBrush}"
+                                    Opacity="0" IsHitTestVisible="False"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                            <Border x:Name="Ring" Margin="1" CornerRadius="9" BorderThickness="2"
+                                    BorderBrush="{DynamicResource FocusRingBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="0:0:0.14"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Pressed" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="TrayMenuEntryTemplate" DataType="{x:Type local:TrayMenuItem}">
+            <Grid>
+                <Button x:Name="RowButton" Style="{StaticResource TrayRowButton}"
+                        Click="TrayMenuRow_Click"
+                        AutomationProperties.Name="{Binding Label}"
+                        AutomationProperties.ItemStatus="{Binding StateLabel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock x:Name="GlyphText" Text="{Binding Glyph}"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="14.5"
+                                   Foreground="{DynamicResource GlyphBrush}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                        <TextBlock x:Name="LabelText" Grid.Column="1" Text="{Binding Label}"
+                                   Margin="9,0,12,0" VerticalAlignment="Center"
+                                   FontSize="12.5" FontWeight="Medium"
+                                   Foreground="{DynamicResource ItemForegroundBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+
+                        <Grid Grid.Column="2" VerticalAlignment="Center">
+                            <Border x:Name="Keycap" Background="{DynamicResource KeycapSurfaceBrush}"
+                                    BorderBrush="{DynamicResource KeycapBorderBrush}"
+                                    BorderThickness="1" CornerRadius="5" Padding="6,2">
+                                <TextBlock Text="{Binding Shortcut}" FontSize="10" FontWeight="Medium"
+                                           Foreground="{DynamicResource KeycapInkBrush}"/>
+                            </Border>
+                            <Grid x:Name="Switch" Width="34" Height="20" Visibility="Collapsed">
+                                <Border x:Name="Track" CornerRadius="10"
+                                        Background="{DynamicResource SwitchTrackBrush}"
+                                        BorderBrush="{DynamicResource SwitchTrackBorderBrush}" BorderThickness="1"/>
+                                <Border x:Name="Knob" Width="14" Height="14" CornerRadius="7"
+                                        Background="{DynamicResource SwitchKnobBrush}" HorizontalAlignment="Left"
+                                        VerticalAlignment="Center" Margin="3,0,0,0"/>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Button>
+
+                <Border x:Name="Divider" Height="1" Background="{DynamicResource DividerBrush}"
+                        Margin="14,5" VerticalAlignment="Center" Visibility="Collapsed"/>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSeparator}" Value="True">
+                    <Setter TargetName="RowButton" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="Divider" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Shortcut}" Value="{x:Null}">
+                    <Setter TargetName="Keycap" Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsOn}" Value="False">
+                    <Setter TargetName="Switch" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsOn}" Value="True">
+                    <Setter TargetName="Switch" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                    <Setter TargetName="Knob" Property="Margin" Value="17,0,3,0"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsDanger}" Value="True">
+                    <Setter TargetName="LabelText" Property="Foreground" Value="{DynamicResource DangerInkBrush}"/>
+                    <Setter TargetName="GlyphText" Property="Foreground" Value="{DynamicResource DangerGlyphBrush}"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid x:Name="RootHost" Margin="14">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="Slide" Y="5"/>
+        </Grid.RenderTransform>
+
+        <!-- Shadow is a separate layer so the menu text stays crisp (a DropShadowEffect
+             on the content border rasterises its children). -->
+        <Border CornerRadius="16" Background="{DynamicResource ShadowSurfaceBrush}" IsHitTestVisible="False">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="26" ShadowDepth="0" Opacity="0.5" Color="#FF000000"/>
+            </Border.Effect>
+        </Border>
+
+        <Border CornerRadius="16" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
+                Background="{DynamicResource TraySurfaceBrush}">
+            <Grid>
+                <Border x:Name="Glow" CornerRadius="16" IsHitTestVisible="False"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="17,13,16,9">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Width="30" Height="30" CornerRadius="10"
+                                Background="{DynamicResource HeaderPlateSurfaceBrush}"
+                                BorderBrush="{DynamicResource HeaderPlateBorderBrush}" BorderThickness="1">
+                            <Image Source="{StaticResource TolkLogoMark}" Margin="5"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Tolk Island" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource ItemForegroundBrush}"/>
+                            <TextBlock x:Name="HeaderMeta" Text="" FontSize="10.5"
+                                       Foreground="{DynamicResource GlyphBrush}" Margin="0,1,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse x:Name="StatusDot" Width="6" Height="6"
+                                     Fill="{DynamicResource AccentBrush}" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="HeaderState" Text="Running" FontSize="10.5"
+                                       Foreground="{DynamicResource GlyphBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1" Height="1" Background="#12FFFFFF" Margin="14,0"/>
+
+                    <ScrollViewer Grid.Row="2" x:Name="ItemsScroll"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="ItemsHost" Margin="6"
+                                      ItemTemplate="{StaticResource TrayMenuEntryTemplate}">
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
